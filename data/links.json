@@ -1,0 +1,116 @@
+{
+  "topbar": [
+    {
+      "label": "Blog",
+      "href": "/blog"
+    },
+    {
+      "label": "Support",
+      "href": "/support"
+    },
+    {
+      "label": "Track Your Order",
+      "href": "/track-order"
+    }
+  ],
+  "mainMenu": [
+    {
+      "label": "Home",
+      "href": "/"
+    },
+    {
+      "label": "Women",
+      "href": "/shop/women"
+    },
+    {
+      "label": "Men",
+      "href": "/shop/men"
+    },
+    {
+      "label": "Kids",
+      "href": "/shop/kids"
+    },
+    {
+      "label": "Accessories",
+      "href": "/shop/accessories"
+    },
+    {
+      "label": "Sale",
+      "href": "/shop/sale"
+    }
+  ],
+  "shopDropdown": [
+    {
+      "label": "Summer",
+      "href": "/shop/summer"
+    },
+    {
+      "label": "Women",
+      "href": "/shop/women"
+    },
+    {
+      "label": "Men",
+      "href": "/shop/men"
+    },
+    {
+      "label": "Teen",
+      "href": "/shop/teen"
+    },
+    {
+      "label": "Kids",
+      "href": "/shop/kids"
+    },
+    {
+      "label": "Nargisus",
+      "href": "/shop/nargisus"
+    },
+    {
+      "label": "Home Decor",
+      "href": "/shop/home-decor"
+    }
+  ],
+  "footerAbout": [
+    {
+      "label": "About Mohona",
+      "href": "/about"
+    },
+    {
+      "label": "Corporate Responsibility",
+      "href": "/corporate"
+    },
+    {
+      "label": "Careers",
+      "href": "/careers"
+    },
+    {
+      "label": "Investors",
+      "href": "/investors"
+    },
+    {
+      "label": "Blog",
+      "href": "/blog"
+    }
+  ],
+  "footerHelp": [
+    {
+      "label": "Customer Service",
+      "href": "/support"
+    },
+    {
+      "label": "Find a Store",
+      "href": "/find-store"
+    },
+    {
+      "label": "Legal & Privacy",
+      "href": "/privacy"
+    },
+    {
+      "label": "Gift Cards",
+      "href": "/gift-cards"
+    },
+    {
+      "label": "Contact Us",
+      "href": "/contact"
+    }
+  ]
+}

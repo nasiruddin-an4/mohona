@@ -1,0 +1,116 @@
+{
+  "categories": [
+    {
+      "id": "cat_staples",
+      "name": "Rice & Grains",
+      "icon": "Wheat",
+      "href": "/shop?category=Rice & Grains",
+      "description": "Premium rice, dal & pulses",
+      "subcategories": [
+        { "name": "Miniket Rice", "href": "/shop?category=Rice & Grains&sub=miniket", "items": 12 },
+        { "name": "Chinigura Rice", "href": "/shop?category=Rice & Grains&sub=chinigura", "items": 8 },
+        { "name": "Basmati Rice", "href": "/shop?category=Rice & Grains&sub=basmati", "items": 6 },
+        { "name": "Dal & Pulses", "href": "/shop?category=Rice & Grains&sub=dal", "items": 15 },
+        { "name": "Flour & Atta", "href": "/shop?category=Rice & Grains&sub=flour", "items": 10 }
+      ]
+    },
+    {
+      "id": "cat_meat",
+      "name": "Fish & Meat",
+      "icon": "Beef",
+      "href": "/shop?category=Fish & Meat",
+      "description": "Fresh fish, chicken & meat",
+      "subcategories": [
+        { "name": "Fresh Fish", "href": "/shop?category=Fish & Meat&sub=fish", "items": 18 },
+        { "name": "Frozen Fish", "href": "/shop?category=Fish & Meat&sub=frozen-fish", "items": 10 },
+        { "name": "Chicken", "href": "/shop?category=Fish & Meat&sub=chicken", "items": 14 },
+        { "name": "Beef & Mutton", "href": "/shop?category=Fish & Meat&sub=beef", "items": 8 },
+        { "name": "Dried Fish", "href": "/shop?category=Fish & Meat&sub=dried", "items": 6 }
+      ]
+    },
+    {
+      "id": "cat_veg",
+      "name": "Vegetables",
+      "icon": "Carrot",
+      "href": "/shop?category=Vegetables",
+      "description": "Farm-fresh vegetables & fruits",
+      "subcategories": [
+        { "name": "Leafy Greens", "href": "/shop?category=Vegetables&sub=leafy", "items": 12 },
+        { "name": "Root Vegetables", "href": "/shop?category=Vegetables&sub=root", "items": 10 },
+        { "name": "Seasonal Fruits", "href": "/shop?category=Vegetables&sub=fruits", "items": 20 },
+        { "name": "Herbs & Garnish", "href": "/shop?category=Vegetables&sub=herbs", "items": 8 },
+        { "name": "Exotic Vegetables", "href": "/shop?category=Vegetables&sub=exotic", "items": 5 }
+      ]
+    },
+    {
+      "id": "cat_dairy",
+      "name": "Dairy & Eggs",
+      "icon": "Milk",
+      "href": "/shop?category=Dairy & Eggs",
+      "description": "Milk, eggs, cheese & ghee",
+      "subcategories": [
+        { "name": "Milk & Cream", "href": "/shop?category=Dairy & Eggs&sub=milk", "items": 15 },
+        { "name": "Eggs", "href": "/shop?category=Dairy & Eggs&sub=eggs", "items": 8 },
+        { "name": "Cheese & Butter", "href": "/shop?category=Dairy & Eggs&sub=cheese", "items": 12 },
+        { "name": "Ghee & Curd", "href": "/shop?category=Dairy & Eggs&sub=ghee", "items": 10 },
+        { "name": "Yogurt & Sweets", "href": "/shop?category=Dairy & Eggs&sub=yogurt", "items": 6 }
+      ]
+    },
+    {
+      "id": "cat_spices",
+      "name": "Spices & Oil",
+      "icon": "Flame",
+      "href": "/shop?category=Spices & Oil",
+      "description": "Cooking oils, spices & sauces",
+      "subcategories": [
+        { "name": "Cooking Oil", "href": "/shop?category=Spices & Oil&sub=oil", "items": 12 },
+        { "name": "Whole Spices", "href": "/shop?category=Spices & Oil&sub=whole-spices", "items": 20 },
+        { "name": "Ground Masala", "href": "/shop?category=Spices & Oil&sub=masala", "items": 18 },
+        { "name": "Sauces & Ketchup", "href": "/shop?category=Spices & Oil&sub=sauces", "items": 14 },
+        { "name": "Pickles & Chutneys", "href": "/shop?category=Spices & Oil&sub=pickles", "items": 10 }
+      ]
+    },
+    {
+      "id": "cat_snacks",
+      "name": "Snacks & Bakery",
+      "icon": "Cookie",
+      "href": "/shop?category=Snacks & Bakery",
+      "description": "Biscuits, chips & bakery items",
+      "subcategories": [
+        { "name": "Biscuits & Cookies", "href": "/shop?category=Snacks & Bakery&sub=biscuits", "items": 25 },
+        { "name": "Chips & Crackers", "href": "/shop?category=Snacks & Bakery&sub=chips", "items": 15 },
+        { "name": "Bread & Toast", "href": "/shop?category=Snacks & Bakery&sub=bread", "items": 10 },
+        { "name": "Shemai & Suji", "href": "/shop?category=Snacks & Bakery&sub=shemai", "items": 8 },
+        { "name": "Chocolates", "href": "/shop?category=Snacks & Bakery&sub=chocolates", "items": 12 }
+      ]
+    },
+    {
+      "id": "cat_beverages",
+      "name": "Beverages",
+      "icon": "Coffee",
+      "href": "/shop?category=Beverages",
+      "description": "Tea, coffee, juice & drinks",
+      "subcategories": [
+        { "name": "Tea & Coffee", "href": "/shop?category=Beverages&sub=tea-coffee", "items": 18 },
+        { "name": "Juice & Drinks", "href": "/shop?category=Beverages&sub=juice", "items": 14 },
+        { "name": "Water & Soda", "href": "/shop?category=Beverages&sub=water", "items": 8 },
+        { "name": "Health Drinks", "href": "/shop?category=Beverages&sub=health", "items": 6 },
+        { "name": "Powder Drinks", "href": "/shop?category=Beverages&sub=powder", "items": 10 }
+      ]
+    },
+    {
+      "id": "cat_hygiene",
+      "name": "Hygiene & Care",
+      "icon": "Sparkles",
+      "href": "/shop?category=Hygiene & Care",
+      "description": "Personal care & cleaning",
+      "subcategories": [
+        { "name": "Soap & Handwash", "href": "/shop?category=Hygiene & Care&sub=soap", "items": 15 },
+        { "name": "Shampoo & Hair Care", "href": "/shop?category=Hygiene & Care&sub=shampoo", "items": 12 },
+        { "name": "Toothpaste & Oral", "href": "/shop?category=Hygiene & Care&sub=oral", "items": 10 },
+        { "name": "Detergent & Cleaning", "href": "/shop?category=Hygiene & Care&sub=cleaning", "items": 14 },
+        { "name": "Tissue & Napkins", "href": "/shop?category=Hygiene & Care&sub=tissue", "items": 8 }
+      ]
+    }
+  ]
+}
