@@ -45,23 +45,25 @@ export default function ProductCard({ product }) {
     return value;
   };
 
+  const safePrice = Number(product.unit_price) || 0;
+
   const currentPrice = useMemo(() => {
     const multiplier = getUnitMultiplier(selectedUnit);
-    return product.unit_price * multiplier;
-  }, [selectedUnit, product.unit_price]);
+    return safePrice * multiplier;
+  }, [selectedUnit, safePrice]);
 
   // Calculate price range for display
   const priceRange = useMemo(() => {
     if (!product.available_units || product.available_units.length <= 1) {
-      return `${product.unit_price.toLocaleString()}৳`;
+      return `${safePrice.toLocaleString()}৳`;
     }
     const prices = product.available_units.map(
-      (unit) => product.unit_price * getUnitMultiplier(unit),
+      (unit) => safePrice * getUnitMultiplier(unit),
     );
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     return `${minPrice.toLocaleString()}৳ — ${maxPrice.toLocaleString()}৳`;
-  }, [product.available_units, product.unit_price]);
+  }, [product.available_units, safePrice]);
 
   const [hasSelected, setHasSelected] = useState(false);
 
@@ -84,12 +86,18 @@ export default function ProductCard({ product }) {
   return (
     <div className="flex flex-col group relative">
       {/* Image Container */}
-      <Link href={`/product/${product.product_id}`} className="relative aspect-[3/4] overflow-hidden bg-[#f4f4f4] mb-2 block">
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className={`object-cover w-full h-full transition-transform duration-700 group-hover:scale-105 ${isOutOfStock ? "grayscale opacity-30" : ""}`}
-        />
+      <Link href={`/product/${product._id || product.product_id}`} className="relative aspect-[3/4] overflow-hidden bg-[#f4f4f4] mb-2 block">
+        {(product.cover_image || product.image_url) ? (
+          <img
+            src={product.cover_image || product.image_url}
+            alt={product.name}
+            className={`object-cover w-full h-full transition-transform duration-700 group-hover:scale-105 ${isOutOfStock ? "grayscale opacity-30" : ""}`}
+          />
+        ) : (
+          <div className={`w-full h-full flex items-center justify-center text-gray-400 text-xs ${isOutOfStock ? "opacity-30" : ""}`}>
+            No Image
+          </div>
+        )}
 
         {/* Discount Badge */}
         {product.discount_pct && !isOutOfStock && (
@@ -97,19 +105,26 @@ export default function ProductCard({ product }) {
             {product.discount_pct}% OFF
           </div>
         )}
-      </Link>
 
-      {/* Gallery Segment Lines */}
-      <div className="flex gap-1 mb-2 px-1">
-        <div className="h-[2px] w-full bg-gray-400"></div>
-        <div className="h-[2px] w-full bg-gray-200"></div>
-        <div className="h-[2px] w-full bg-gray-200"></div>
-      </div>
+        {/* Out of Stock Badge */}
+        {isOutOfStock && (
+          <div className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm z-10 uppercase tracking-wide">
+            Out of Stock
+          </div>
+        )}
+
+        {/* Limited Badge */}
+        {isLimited && !isOutOfStock && (
+          <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm z-10 uppercase tracking-wide">
+            Limited
+          </div>
+        )}
+      </Link>
 
       {/* Content */}
       <div className="flex flex-col px-1">
-        <Link href={`/product/${product.product_id}`}>
-          <h3 className="text-[11px] text-gray-700 leading-tight mb-1.5 transition-colors">
+        <Link href={`/product/${product._id || product.product_id}`}>
+          <h3 className="text-lg font-medium text-gray-800 leading-snug mb-1.5 transition-colors line-clamp-2">
             {product.name}
           </h3>
         </Link>

@@ -15,8 +15,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="light">
-      <body className={`${outfit.variable} antialiased min-h-screen flex flex-col bg-white font-sans overflow-x-hidden`}>
+    <html lang="en" className="light" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${outfit.variable} antialiased min-h-screen flex flex-col bg-white font-sans overflow-x-hidden`}>
         <ClientLayoutWrapper>
           {children}
         </ClientLayoutWrapper>

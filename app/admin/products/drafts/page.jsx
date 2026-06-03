@@ -4,35 +4,35 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Search, ChevronDown, Eye, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function ProductsPage() {
+export default function DraftProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
-    fetchProducts();
+    fetchDraftProducts();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchDraftProducts = async () => {
     try {
       const res = await fetch('/api/products');
       const data = await res.json();
       if (data.success) {
-        setProducts(data.data);
+        const drafts = data.data.filter(p => p.status === 'Draft');
+        setProducts(drafts);
       }
     } catch (error) {
-      console.error('Failed to fetch products', error);
+      console.error('Failed to fetch draft products', error);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteProduct = async (id) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm('Are you sure you want to delete this draft product?')) return;
     try {
       const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -46,8 +46,7 @@ export default function ProductsPage() {
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
-    const matchesStatus = selectedStatus ? (p.status || 'Publish') === selectedStatus : true;
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory;
   });
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -62,7 +61,7 @@ export default function ProductsPage() {
       {/* Top Header Bar */}
       <div className="flex items-center mb-4 border-b border-gray-200 pb-6">
         {/* Left - Title */}
-        <h1 className="text-xl font-bold text-gray-900 shrink-0">Product List</h1>
+        <h1 className="text-xl font-bold text-gray-900 shrink-0">Draft Products</h1>
         
         {/* Middle - Search */}
         <div className="flex-1 flex justify-center px-6">
@@ -70,7 +69,7 @@ export default function ProductsPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input 
               type="text" 
-              placeholder="Search..." 
+              placeholder="Search drafts..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-none rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400"
@@ -96,19 +95,6 @@ export default function ProductsPage() {
               <option value="Beauty">Beauty</option>
               <option value="Sports">Sports</option>
               <option value="Accessories">Accessories</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-          </div>
-          
-          <div className="relative">
-            <select 
-              value={selectedStatus}
-              onChange={(e) => { setSelectedStatus(e.target.value); setCurrentPage(1); }}
-              className="appearance-none bg-gray-50 border-none rounded-full px-5 py-2.5 pr-10 text-sm font-medium text-gray-600 focus:outline-none cursor-pointer"
-            >
-              <option value="">Status</option>
-              <option value="Publish">Publish</option>
-              <option value="Draft">Draft</option>
             </select>
             <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           </div>
@@ -146,8 +132,7 @@ export default function ProductsPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {paginatedProducts.length > 0 ? (
-                  paginatedProducts.map((product, idx) => {
-                    const statusText = product.status || 'Publish';
+                  paginatedProducts.map((product) => {
                     const stockStatus = product.stock_status || 'In stock';
 
                     return (
@@ -183,13 +168,8 @@ export default function ProductsPage() {
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block
-                            ${statusText === 'Publish' 
-                              ? 'bg-[#e2f5f3] text-[#0f8b80]' 
-                              : 'bg-orange-50 text-orange-600'
-                            }`}
-                          >
-                            {statusText}
+                          <span className="px-3 py-1 rounded-full text-xs font-medium inline-block bg-orange-50 text-orange-600">
+                            Draft
                           </span>
                         </td>
                         <td className="px-4 py-4">
@@ -210,8 +190,8 @@ export default function ProductsPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="7" className="text-center py-12 text-gray-500">
-                      No products found.
+                    <td colSpan="8" className="text-center py-12 text-gray-500">
+                      No draft products found.
                     </td>
                   </tr>
                 )}

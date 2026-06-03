@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MOCK_PRODUCTS } from '../../lib/data';
+import React, { useState, useEffect } from 'react';
+
 import ProductCard from '../../components/ProductCard';
 import { Search, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -36,10 +36,10 @@ export default function ShopPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch('/api/products', { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
-        setProducts(data.data);
+        setProducts(data.data.filter(p => (p.status || 'Publish') === 'Publish'));
       }
     } catch (error) {
       console.error('Failed to fetch products', error);

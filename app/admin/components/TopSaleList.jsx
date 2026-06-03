@@ -32,7 +32,7 @@ export default function TopSaleList() {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{product.name}</h4>
-                <p className="text-xs font-bold text-gray-500">${product.price}</p>
+                <p className="text-xs font-bold text-gray-500">BDT {product.price}</p>
               </div>
             </div>
             <div className="text-xs font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded-md shrink-0">

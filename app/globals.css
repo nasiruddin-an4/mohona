@@ -14,9 +14,9 @@ body {
 }
 
 @theme inline {
-  --brandColor: #2a2d96;
-  --brandColorHover: #1f2378;
-  --brandColorLight: #e6e6e6;
+  --color-brandColor: #2a2d96;
+  --color-brandColorHover: #1f2378;
+  --color-brandColorLight: #e6e6e6;
 }
 
 

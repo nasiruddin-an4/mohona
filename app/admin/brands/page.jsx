@@ -5,8 +5,8 @@ import { Plus, Edit, Trash2, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { renderToString } from 'react-dom/server';
 
-export default function CategoriesPage() {
-  const [categories, setCategories] = useState([]);
+export default function BrandsPage() {
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Modal State
@@ -17,25 +17,23 @@ export default function CategoriesPage() {
   // Form State
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    subcategories: []
+    description: ''
   });
-  const [subcatInput, setSubcatInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchCategories();
+    fetchBrands();
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchBrands = async () => {
     try {
-      const res = await fetch('/api/categories', { cache: 'no-store' });
+      const res = await fetch('/api/brands', { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
-        setCategories(data.data);
+        setBrands(data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch categories', error);
+      console.error('Failed to fetch brands', error);
     } finally {
       setLoading(false);
     }
@@ -44,20 +42,17 @@ export default function CategoriesPage() {
   const openAddModal = () => {
     setIsEditing(false);
     setCurrentId(null);
-    setFormData({ name: '', description: '', subcategories: [] });
-    setSubcatInput('');
+    setFormData({ name: '', description: '' });
     setIsModalOpen(true);
   };
 
-  const openEditModal = (cat) => {
+  const openEditModal = (brand) => {
     setIsEditing(true);
-    setCurrentId(cat._id);
+    setCurrentId(brand._id);
     setFormData({ 
-      name: cat.name || '', 
-      description: cat.description || '',
-      subcategories: cat.subcategories || []
+      name: brand.name || '', 
+      description: brand.description || ''
     });
-    setSubcatInput('');
     setIsModalOpen(true);
   };
 
@@ -65,32 +60,12 @@ export default function CategoriesPage() {
     setIsModalOpen(false);
   };
 
-  const addSubcategory = (e) => {
-    e.preventDefault();
-    if (subcatInput.trim()) {
-      setFormData({
-        ...formData,
-        subcategories: [...formData.subcategories, { name: subcatInput.trim() }]
-      });
-      setSubcatInput('');
-    }
-  };
-
-  const removeSubcategory = (index) => {
-    const newSubcats = [...formData.subcategories];
-    newSubcats.splice(index, 1);
-    setFormData({
-      ...formData,
-      subcategories: newSubcats
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     
     try {
-      const url = isEditing ? `/api/categories/${currentId}` : '/api/categories';
+      const url = isEditing ? `/api/brands/${currentId}` : '/api/brands';
       const method = isEditing ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -103,19 +78,19 @@ export default function CategoriesPage() {
       if (data.success) {
         Swal.fire({
           title: 'Success!',
-          text: `Category ${isEditing ? 'updated' : 'added'} successfully.`,
+          text: `Brand ${isEditing ? 'updated' : 'added'} successfully.`,
           icon: 'success',
           timer: 1500,
           showConfirmButton: false
         });
         closeModal();
-        fetchCategories(); // Refresh table instantly
+        fetchBrands(); // Refresh table instantly
       } else {
         Swal.fire('Error', data.error || 'Something went wrong', 'error');
       }
     } catch (error) {
       console.error(error);
-      Swal.fire('Error', 'Failed to save category', 'error');
+      Swal.fire('Error', 'Failed to save brand', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -135,14 +110,14 @@ export default function CategoriesPage() {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`/api/categories/${id}`, {
+        const res = await fetch(`/api/brands/${id}`, {
           method: 'DELETE',
         });
         const data = await res.json();
         
         if (data.success) {
-          Swal.fire('Deleted!', 'Category has been deleted.', 'success');
-          fetchCategories(); // Refresh table instantly
+          Swal.fire('Deleted!', 'Brand has been deleted.', 'success');
+          fetchBrands(); // Refresh table instantly
         } else {
           Swal.fire('Error', data.error || 'Failed to delete', 'error');
         }
@@ -157,15 +132,15 @@ export default function CategoriesPage() {
       
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-          <p className="text-sm font-medium text-gray-500 mt-1">Manage product categories</p>
+          <h1 className="text-2xl font-bold text-gray-900">Brands</h1>
+          <p className="text-sm font-medium text-gray-500 mt-1">Manage product brands</p>
         </div>
         <button 
           onClick={openAddModal}
           className="flex items-center gap-2 bg-[#0f8b80] hover:bg-[#0c766d] text-white px-5 py-2.5 rounded-full text-sm font-bold transition-colors"
         >
           <Plus size={16} />
-          Add Category
+          Add Brand
         </button>
       </div>
 
@@ -185,22 +160,22 @@ export default function CategoriesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {categories.length > 0 ? (
-                  categories.map((cat) => (
-                    <tr key={cat._id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-bold text-gray-900">{cat.name}</td>
-                      <td className="px-6 py-4 text-gray-500 max-w-[300px] truncate">{cat.description || '-'}</td>
+                {brands.length > 0 ? (
+                  brands.map((brand) => (
+                    <tr key={brand._id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 font-bold text-gray-900">{brand.name}</td>
+                      <td className="px-6 py-4 text-gray-500 max-w-[400px] truncate">{brand.description || '-'}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
                           <button 
-                            onClick={() => openEditModal(cat)}
+                            onClick={() => openEditModal(brand)}
                             className="text-gray-400 hover:text-[#0f8b80] transition-colors"
                             title="Edit"
                           >
                             <Edit size={16} strokeWidth={2} />
                           </button>
                           <button 
-                            onClick={() => handleDelete(cat._id)}
+                            onClick={() => handleDelete(brand._id)}
                             className="text-gray-400 hover:text-red-600 transition-colors"
                             title="Delete"
                           >
@@ -212,8 +187,8 @@ export default function CategoriesPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="text-center py-16 text-gray-500">
-                      No categories found. Click "Add Category" to create one.
+                    <td colSpan="3" className="text-center py-16 text-gray-500">
+                      No brands found. Click "Add Brand" to create one.
                     </td>
                   </tr>
                 )}
@@ -229,7 +204,7 @@ export default function CategoriesPage() {
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">
-                {isEditing ? 'Edit Category' : 'Add Category'}
+                {isEditing ? 'Edit Brand' : 'Add Brand'}
               </h2>
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <X size={20} />
@@ -246,50 +221,8 @@ export default function CategoriesPage() {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 focus:border-[#0f8b80] transition-all text-sm"
-                    placeholder="e.g. Electronics"
+                    placeholder="e.g. Apple"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Subcategories</label>
-                  <div className="flex gap-2 mb-2">
-                    <input 
-                      type="text"
-                      value={subcatInput}
-                      onChange={(e) => setSubcatInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addSubcategory(e);
-                        }
-                      }}
-                      className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 focus:border-[#0f8b80] transition-all text-sm"
-                      placeholder="Type and press Enter or Add"
-                    />
-                    <button 
-                      type="button" 
-                      onClick={addSubcategory}
-                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-lg transition-colors"
-                    >
-                      Add
-                    </button>
-                  </div>
-                  {formData.subcategories.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {formData.subcategories.map((sub, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5 bg-[#e2f5f3] text-[#0f8b80] px-3 py-1.5 rounded-full text-xs font-bold border border-[#0f8b80]/20">
-                          <span>{sub.name}</span>
-                          <button 
-                            type="button" 
-                            onClick={() => removeSubcategory(idx)}
-                            className="hover:bg-[#0f8b80]/20 rounded-full p-0.5 transition-colors"
-                          >
-                            <X size={14} strokeWidth={3} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <div>
@@ -299,7 +232,7 @@ export default function CategoriesPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 focus:border-[#0f8b80] transition-all text-sm resize-none"
-                    placeholder="Brief description of the category..."
+                    placeholder="Brief description of the brand..."
                   ></textarea>
                 </div>
               </div>
@@ -318,7 +251,7 @@ export default function CategoriesPage() {
                   className="px-5 py-2.5 text-sm font-bold text-white bg-[#0f8b80] hover:bg-[#0c766d] rounded-full transition-colors disabled:opacity-70 flex items-center gap-2"
                 >
                   {submitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
-                  {isEditing ? 'Update Category' : 'Save Category'}
+                  {isEditing ? 'Update Brand' : 'Save Brand'}
                 </button>
               </div>
             </form>

@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, use } from 'react';
-import { MOCK_PRODUCTS } from '../../../lib/data';
+import React, { useState, useEffect, use } from 'react';
 import ProductCard from '../../../components/ProductCard';
 import { Search, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -22,6 +21,8 @@ export default function CategoryPage({ params }) {
   const [priceFilter, setPriceFilter] = useState('all');
   const [colorFilter, setColorFilter] = useState('all');
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const sortOptions = [
     { value: 'default', label: 'Default' },
@@ -36,19 +37,36 @@ export default function CategoryPage({ params }) {
     { value: 'over_100', label: 'Over ৳100' }
   ];
 
-  const allColors = Array.from(new Set(MOCK_PRODUCTS.flatMap(p => p.colors || []))).sort();
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products', { cache: 'no-store' });
+        const data = await res.json();
+        if (data.success) {
+          setProducts(data.data.filter(p => (p.status || 'Publish') === 'Publish'));
+        }
+      } catch (error) {
+        console.error('Failed to fetch products', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const allColors = Array.from(new Set(products.flatMap(p => p.colors || []))).sort();
 
   // Filter products based on URL category and search
-  let filteredProducts = MOCK_PRODUCTS.filter((product) => {
-    // Case-insensitive match on category since URL params might be lowercase
+  let filteredProducts = products.filter((product) => {
     const matchesCategory = product.category.toLowerCase() === categoryName.toLowerCase();
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
       
     let matchesPrice = true;
-    if (priceFilter === 'under_50') matchesPrice = product.unit_price < 50;
-    else if (priceFilter === '50_100') matchesPrice = product.unit_price >= 50 && product.unit_price <= 100;
-    else if (priceFilter === 'over_100') matchesPrice = product.unit_price > 100;
+    const price = Number(product.unit_price) || 0;
+    if (priceFilter === 'under_50') matchesPrice = price < 50;
+    else if (priceFilter === '50_100') matchesPrice = price >= 50 && price <= 100;
+    else if (priceFilter === 'over_100') matchesPrice = price > 100;
     
     let matchesColor = true;
     if (colorFilter !== 'all') {
@@ -59,9 +77,9 @@ export default function CategoryPage({ params }) {
   });
 
   if (sortBy === 'price_asc') {
-    filteredProducts.sort((a, b) => a.unit_price - b.unit_price);
+    filteredProducts.sort((a, b) => (Number(a.unit_price) || 0) - (Number(b.unit_price) || 0));
   } else if (sortBy === 'price_desc') {
-    filteredProducts.sort((a, b) => b.unit_price - a.unit_price);
+    filteredProducts.sort((a, b) => (Number(b.unit_price) || 0) - (Number(a.unit_price) || 0));
   }
 
   return (
@@ -137,10 +155,14 @@ export default function CategoryPage({ params }) {
       </div>
 
       {/* Main Grid */}
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <div className="flex justify-center items-center py-32">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f18e6c]"></div>
+        </div>
+      ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-10">
           {filteredProducts.map((product) => (
-            <ProductCard key={product.product_id} product={product} />
+            <ProductCard key={product._id || product.product_id} product={product} />
           ))}
         </div>
       ) : (

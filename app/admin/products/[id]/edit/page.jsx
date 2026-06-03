@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, Upload, Trash2, X, Save, Plus } from 'lucide-react';
+import ImageUploader from '../../../components/ImageUploader';
+import { uploadToImageKit } from '@/lib/imagekit';
 import Swal from 'sweetalert2';
 
 export default function EditProductPage() {
@@ -14,6 +16,7 @@ export default function EditProductPage() {
   const [isPublishMenuOpen, setIsPublishMenuOpen] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
 
   // New variant form state
   const [newVariant, setNewVariant] = useState({ variantType: 'Size', value: 'L' });
@@ -22,8 +25,12 @@ export default function EditProductPage() {
     name: '',
     category: '',
     description: '',
-    unit_price: 0,
-    stock_status: 'Publish',
+    stock_qty: '',
+    description: '',
+    unit_price: '',
+    selling_price: '',
+    status: 'Publish',
+    stock_status: 'In stock',
     tags: [],
     variants: [],
     discounts: [],
@@ -40,12 +47,24 @@ export default function EditProductPage() {
       const data = await res.json();
       if (data.success) {
         setProduct(data.data);
+        let fetchedStockStatus = data.data.stock_status || 'In stock';
+        let fetchedStatus = data.data.status || 'Publish';
+        
+        // Migrate old data that used stock_status for Publish/Draft
+        if (fetchedStockStatus === 'Publish' || fetchedStockStatus === 'Draft') {
+          fetchedStatus = fetchedStockStatus;
+          fetchedStockStatus = 'In stock';
+        }
+
         setFormData({
           name: data.data.name || '',
           category: data.data.category || 'Fashion',
           description: data.data.description || '',
-          unit_price: data.data.unit_price || 0,
-          stock_status: data.data.stock_status === 'Draft' ? 'Draft' : 'Publish',
+          unit_price: data.data.unit_price || '',
+          selling_price: data.data.selling_price || '',
+          stock_qty: data.data.stock_qty || '',
+          status: fetchedStatus,
+          stock_status: fetchedStockStatus,
           tags: data.data.tags || [],
           variants: data.data.variants || [],
           discounts: data.data.discounts || [],
@@ -133,19 +152,30 @@ export default function EditProductPage() {
     }));
   };
 
-  // ── Media (Image URL) ──
-  const handleImageUrlChange = (e) => {
-    setFormData(prev => ({ ...prev, image_url: e.target.value }));
+  // ── Media (Image Upload - deferred) ──
+  const handleFileSelect = (file) => {
+    setPendingFile(file);
+    if (!file) {
+      setFormData(prev => ({ ...prev, image_url: '' }));
+    }
   };
 
   // ── Save ──
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // 1. Upload new image to ImageKit first if a file was selected
+      let updatedData = { ...formData };
+      if (pendingFile) {
+        const imageUrl = await uploadToImageKit(pendingFile, '/products');
+        updatedData.image_url = imageUrl;
+      }
+
+      // 2. Then save product data to DB
       const res = await fetch(`/api/products/${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(updatedData),
       });
       const data = await res.json();
       if (data.success) {
@@ -255,20 +285,20 @@ export default function EditProductPage() {
               onClick={() => setIsPublishMenuOpen(!isPublishMenuOpen)}
               className="flex items-center gap-2 border border-teal-200 bg-teal-50/50 text-[#0f8b80] px-4 py-2 rounded-full text-sm font-bold focus:outline-none"
             >
-              {formData.stock_status} <ChevronDown size={16} className={`transition-transform duration-200 ${isPublishMenuOpen ? 'rotate-180' : ''}`} />
+              {formData.status} <ChevronDown size={16} className={`transition-transform duration-200 ${isPublishMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isPublishMenuOpen && (
               <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-100 rounded-xl shadow-lg py-2 z-10 animate-in fade-in slide-in-from-top-2 duration-200">
                 <button 
-                  onClick={() => { setFormData(p => ({...p, stock_status: 'Publish'})); setIsPublishMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${formData.stock_status === 'Publish' ? 'text-[#0f8b80] bg-teal-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
+                  onClick={() => { setFormData(p => ({...p, status: 'Publish'})); setIsPublishMenuOpen(false); }}
+                  className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${formData.status === 'Publish' ? 'text-[#0f8b80] bg-teal-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                   Publish
                 </button>
                 <button 
-                  onClick={() => { setFormData(p => ({...p, stock_status: 'Draft'})); setIsPublishMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${formData.stock_status === 'Draft' ? 'text-[#0f8b80] bg-teal-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
+                  onClick={() => { setFormData(p => ({...p, status: 'Draft'})); setIsPublishMenuOpen(false); }}
+                  className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${formData.status === 'Draft' ? 'text-[#0f8b80] bg-teal-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                   Draft
                 </button>
@@ -336,11 +366,53 @@ export default function EditProductPage() {
                 value={formData.unit_price}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+                placeholder="e.g. 100"
               />
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Selling Price</label>
+              <input 
+                type="number" 
+                name="selling_price"
+                value={formData.selling_price}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+                placeholder="e.g. 80"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Stock Quantity</label>
+              <input 
+                type="number" 
+                name="stock_qty"
+                value={formData.stock_qty}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+                placeholder="e.g. 100"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Stock Status</label>
+              <div className="relative">
+                <select 
+                  name="stock_status"
+                  value={formData.stock_status}
+                  onChange={handleInputChange}
+                  className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors cursor-pointer"
+                >
+                  <option value="In stock">In stock</option>
+                  <option value="Out of stock">Out of stock</option>
+                  <option value="Limited">Limited</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
             <div className="md:col-span-2 space-y-1.5 mt-2">
-              <label className="text-sm text-gray-400">Short Description</label>
+              <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Short Description</label>
               <textarea 
                 rows="4"
                 name="description"
@@ -357,30 +429,11 @@ export default function EditProductPage() {
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.03)]">
           <h2 className="text-base font-bold text-gray-900 mb-6">Media</h2>
           
-          <div className="space-y-1.5 mb-6">
-            <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Image URL</label>
-            <input 
-              type="text" 
-              value={formData.image_url}
-              onChange={handleImageUrlChange}
-              placeholder="Enter image URL (e.g. /productImg/10001.jpg)"
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
-            />
-          </div>
-
-          {formData.image_url && (
-            <div className="flex gap-4">
-              <div className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-200 overflow-hidden relative group">
-                <img src={formData.image_url} alt="Product" className="w-full h-full object-contain" />
-                <button
-                  onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
-                  className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X size={10} />
-                </button>
-              </div>
-            </div>
-          )}
+          <ImageUploader
+            value={formData.image_url}
+            onFileSelect={handleFileSelect}
+            label="Product Image"
+          />
         </div>
 
         {/* ════════════════════ Variants ════════════════════ */}

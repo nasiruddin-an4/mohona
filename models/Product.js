@@ -19,6 +19,10 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Please provide product price'],
     },
+    selling_price: {
+      type: Number,
+      default: 0,
+    },
     unit: {
       type: String,
       default: 'piece',
@@ -33,16 +37,20 @@ const ProductSchema = new mongoose.Schema(
     },
     image_url: {
       type: String,
-      required: [true, 'Please provide a product image'],
+      default: '',
     },
     stock_status: {
       type: String,
       enum: ['In stock', 'Out of stock', 'Limited'],
       default: 'In stock',
     },
+    status: {
+      type: String,
+      enum: ['Publish', 'Draft'],
+      default: 'Publish',
+    },
     stock_qty: {
       type: Number,
-      required: [true, 'Please provide product stock quantity'],
       default: 0,
     },
     discount_pct: {
@@ -70,6 +78,9 @@ const ProductSchema = new mongoose.Schema(
     cover_image: String,
     product_images: [String],
     video_url: String,
+    product_type: String,
+    brand: String,
+    seller: String,
   },
   { timestamps: true }
 );

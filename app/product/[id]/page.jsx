@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { MOCK_PRODUCTS } from '../../../lib/data';
 import { useCartStore } from '../../../store/useCartStore';
 import { useSidebarStore } from '../../../store/useSidebarStore';
 import { ChevronRight, ChevronLeft, ShoppingCart, Copy, Store, ChevronDown, ChevronUp } from 'lucide-react';
@@ -15,13 +14,37 @@ export default function ProductDetailsPage() {
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useSidebarStore((state) => state.openCart);
 
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [infoExpanded, setInfoExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(true);
+  const [selectedUnit, setSelectedUnit] = useState('N/A');
 
-  // Find product by ID
-  const product = MOCK_PRODUCTS.find(p => p.product_id === id);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`/api/products/${id}`);
+        const data = await res.json();
+        if (data.success) {
+          setProduct(data.data);
+          setSelectedUnit(data.data.available_units?.[0] || data.data.unit || 'N/A');
+        }
+      } catch (error) {
+        console.error('Failed to fetch product:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
-  const [selectedUnit, setSelectedUnit] = useState(product?.available_units?.[0] || product?.unit || 'N/A');
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f18e6c]"></div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -47,8 +70,8 @@ export default function ProductDetailsPage() {
     openCart();
   };
 
-  const formattedId = product.product_id.replace('P', '62-932');
-  const displaySku = `LSHR${formattedId.replace('-', '')}`;
+  const formattedId = product._id.slice(-6);
+  const displaySku = `LSHR${formattedId}`;
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
