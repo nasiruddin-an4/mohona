@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ChevronDown, Upload, Trash2, X, Save } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Upload, Trash2, X, Save, Plus } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function EditProductPage() {
@@ -13,16 +13,22 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
   const [isPublishMenuOpen, setIsPublishMenuOpen] = useState(false);
   const [tagInput, setTagInput] = useState('');
-  
+  const [isSaving, setIsSaving] = useState(false);
+
+  // New variant form state
+  const [newVariant, setNewVariant] = useState({ variantType: 'Size', value: 'L' });
+
   const [formData, setFormData] = useState({
     name: '',
     category: '',
     description: '',
     unit_price: 0,
-    stock_status: 'Publish', // Mapped to stock_status conceptually for UI
+    stock_status: 'Publish',
     tags: [],
+    variants: [],
+    discounts: [],
+    image_url: '',
   });
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetchProduct();
@@ -41,6 +47,9 @@ export default function EditProductPage() {
           unit_price: data.data.unit_price || 0,
           stock_status: data.data.stock_status === 'Draft' ? 'Draft' : 'Publish',
           tags: data.data.tags || [],
+          variants: data.data.variants || [],
+          discounts: data.data.discounts || [],
+          image_url: data.data.image_url || '',
         });
       }
     } catch (error) {
@@ -50,14 +59,16 @@ export default function EditProductPage() {
     }
   };
 
+  // ── Generic Input Handler ──
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // ── Tags ──
   const handleTagKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevent form submission if any
+      e.preventDefault();
       const newTag = tagInput.trim();
       if (newTag && !formData.tags.includes(newTag)) {
         setFormData(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
@@ -70,10 +81,67 @@ export default function EditProductPage() {
     setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tagToRemove) }));
   };
 
+  // ── Variants ──
+  const handleAddVariant = () => {
+    const skuNum = Math.floor(10000 + Math.random() * 90000);
+    const vIdx = formData.variants.length + 1;
+    const variant = {
+      sku: `#${skuNum}`,
+      variant_id: `#V-${String(vIdx).padStart(3, '0')}`,
+      image: product?.image_url || '',
+      color: product?.colors?.[0] || 'Black',
+      size: newVariant.value,
+      visible: '1 x 80ml',
+      status: 'Active',
+    };
+    setFormData(prev => ({ ...prev, variants: [...prev.variants, variant] }));
+  };
+
+  const handleRemoveVariant = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleVariantChange = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.map((v, i) => i === index ? { ...v, [field]: value } : v),
+    }));
+  };
+
+  // ── Discounts ──
+  const handleAddDiscount = () => {
+    setFormData(prev => ({
+      ...prev,
+      discounts: [...prev.discounts, { title: '', price: '', duration: '' }],
+    }));
+  };
+
+  const handleRemoveDiscount = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      discounts: prev.discounts.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleDiscountChange = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      discounts: prev.discounts.map((d, i) => i === index ? { ...d, [field]: value } : d),
+    }));
+  };
+
+  // ── Media (Image URL) ──
+  const handleImageUrlChange = (e) => {
+    setFormData(prev => ({ ...prev, image_url: e.target.value }));
+  };
+
+  // ── Save ──
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Map UI publish status to DB logic if needed, or just save generic fields
       const res = await fetch(`/api/products/${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -109,6 +177,7 @@ export default function EditProductPage() {
     }
   };
 
+  // ── Delete ──
   const handleDelete = async () => {
     const result = await Swal.fire({
       title: 'Are you sure?',
@@ -210,7 +279,7 @@ export default function EditProductPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Basic Information */}
+        {/* ════════════════════ Basic Information ════════════════════ */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.03)]">
           <h2 className="text-base font-bold text-gray-900 mb-6">Basic Information</h2>
           
@@ -249,6 +318,11 @@ export default function EditProductPage() {
                   <option value="Men">Men</option>
                   <option value="Women">Women</option>
                   <option value="Electronics">Electronics</option>
+                  <option value="Furniture">Furniture</option>
+                  <option value="Home">Home</option>
+                  <option value="Beauty">Beauty</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Accessories">Accessories</option>
                 </select>
                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
@@ -279,34 +353,45 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* Media */}
+        {/* ════════════════════ Media ════════════════════ */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.03)]">
           <h2 className="text-base font-bold text-gray-900 mb-6">Media</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center py-10 hover:border-[#0f8b80] transition-colors cursor-pointer bg-gray-50/50">
-              <Upload size={24} className="text-gray-400 mb-2" />
-              <p className="text-sm font-bold text-gray-700">Upload Cover photo</p>
-              <p className="text-xs text-gray-400 mt-1">Allowed *.jpeg, *.jpg, *.png, *.gif</p>
-              <p className="text-xs text-gray-400">Max size of 3.1 MB</p>
-            </div>
+          <div className="space-y-1.5 mb-6">
+            <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Image URL</label>
+            <input 
+              type="text" 
+              value={formData.image_url}
+              onChange={handleImageUrlChange}
+              placeholder="Enter image URL (e.g. /productImg/10001.jpg)"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+            />
           </div>
-          
-          {product.image_url && (
-            <div className="flex gap-4 mt-6">
-              <div className="w-12 h-12 rounded bg-gray-50 border border-gray-200 overflow-hidden relative group">
-                <img src={product.image_url} alt="Thumbnail" className="w-full h-full object-contain" />
+
+          {formData.image_url && (
+            <div className="flex gap-4">
+              <div className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-200 overflow-hidden relative group">
+                <img src={formData.image_url} alt="Product" className="w-full h-full object-contain" />
+                <button
+                  onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                  className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X size={10} />
+                </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Variant */}
+        {/* ════════════════════ Variants ════════════════════ */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.03)]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-base font-bold text-gray-900">Variant</h2>
-            <button className="border border-[#0f8b80] text-[#0f8b80] px-4 py-1.5 rounded-full text-xs font-bold hover:bg-[#0f8b80] hover:text-white transition-colors">
-              Add More Variant
+            <button 
+              onClick={handleAddVariant}
+              className="flex items-center gap-1 border border-[#0f8b80] text-[#0f8b80] px-4 py-1.5 rounded-full text-xs font-bold hover:bg-[#0f8b80] hover:text-white transition-colors"
+            >
+              <Plus size={14} /> Add More Variant
             </button>
           </div>
           
@@ -314,7 +399,11 @@ export default function EditProductPage() {
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Select Variant</label>
               <div className="relative">
-                <select className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors">
+                <select 
+                  value={newVariant.variantType}
+                  onChange={(e) => setNewVariant(prev => ({ ...prev, variantType: e.target.value }))}
+                  className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+                >
                   <option>Size</option>
                   <option>Color</option>
                 </select>
@@ -325,77 +414,112 @@ export default function EditProductPage() {
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Value</label>
               <div className="relative">
-                <select className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors">
-                  <option>L</option>
-                  <option>M</option>
+                <select 
+                  value={newVariant.value}
+                  onChange={(e) => setNewVariant(prev => ({ ...prev, value: e.target.value }))}
+                  className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+                >
+                  <option>XS</option>
                   <option>S</option>
+                  <option>M</option>
+                  <option>L</option>
+                  <option>XL</option>
+                  <option>XXL</option>
                 </select>
                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead>
-                <tr className="text-gray-700 font-bold border-b border-gray-100">
-                  <th className="py-4 pr-4">SKU ID</th>
-                  <th className="py-4 px-4">Variant ID</th>
-                  <th className="py-4 px-4">Image</th>
-                  <th className="py-4 px-4">Color</th>
-                  <th className="py-4 px-4">Size</th>
-                  <th className="py-4 px-4">Visible</th>
-                  <th className="py-4 px-4">Status</th>
-                  <th className="py-4 pl-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 text-gray-500">
-                <tr>
-                  <td className="py-4 pr-4">#73423</td>
-                  <td className="py-4 px-4">#V-001</td>
-                  <td className="py-4 px-4">
-                    <div className="w-6 h-6 bg-gray-100 rounded">
-                      {product.image_url && <img src={product.image_url} className="w-full h-full object-contain" alt="Variant"/>}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">{product.colors?.[0] || 'Black'}</td>
-                  <td className="py-4 px-4">L</td>
-                  <td className="py-4 px-4">1 x 80ml</td>
-                  <td className="py-4 px-4">
-                    <span className="bg-[#e2f5f3] text-[#0f8b80] px-3 py-1 rounded-full text-[10px] font-bold">Active</span>
-                  </td>
-                  <td className="py-4 pl-4 text-right">
-                    <button className="text-gray-400 hover:text-red-500">
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 pr-4">#73424</td>
-                  <td className="py-4 px-4">#V-002</td>
-                  <td className="py-4 px-4">
-                    <div className="w-6 h-6 bg-gray-100 rounded">
-                      {product.image_url && <img src={product.image_url} className="w-full h-full object-contain" alt="Variant"/>}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">{product.colors?.[0] || 'Black'}</td>
-                  <td className="py-4 px-4">M</td>
-                  <td className="py-4 px-4">1 x 80ml</td>
-                  <td className="py-4 px-4">
-                    <span className="bg-[#e2f5f3] text-[#0f8b80] px-3 py-1 rounded-full text-[10px] font-bold">Active</span>
-                  </td>
-                  <td className="py-4 pl-4 text-right">
-                    <button className="text-gray-400 hover:text-red-500">
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          {formData.variants.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead>
+                  <tr className="text-gray-700 font-bold border-b border-gray-100">
+                    <th className="py-4 pr-4">SKU ID</th>
+                    <th className="py-4 px-4">Variant ID</th>
+                    <th className="py-4 px-4">Image</th>
+                    <th className="py-4 px-4">Color</th>
+                    <th className="py-4 px-4">Size</th>
+                    <th className="py-4 px-4">Visible</th>
+                    <th className="py-4 px-4">Status</th>
+                    <th className="py-4 pl-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 text-gray-500">
+                  {formData.variants.map((variant, index) => (
+                    <tr key={index}>
+                      <td className="py-4 pr-4">
+                        <input 
+                          type="text" 
+                          value={variant.sku} 
+                          onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
+                          className="w-20 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#0f8b80] focus:outline-none text-sm"
+                        />
+                      </td>
+                      <td className="py-4 px-4">
+                        <input 
+                          type="text" 
+                          value={variant.variant_id}
+                          onChange={(e) => handleVariantChange(index, 'variant_id', e.target.value)}
+                          className="w-20 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#0f8b80] focus:outline-none text-sm"
+                        />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="w-6 h-6 bg-gray-100 rounded">
+                          {variant.image && <img src={variant.image} className="w-full h-full object-contain" alt="Variant"/>}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <input 
+                          type="text" 
+                          value={variant.color}
+                          onChange={(e) => handleVariantChange(index, 'color', e.target.value)}
+                          className="w-16 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#0f8b80] focus:outline-none text-sm"
+                        />
+                      </td>
+                      <td className="py-4 px-4">
+                        <input 
+                          type="text" 
+                          value={variant.size}
+                          onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
+                          className="w-10 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#0f8b80] focus:outline-none text-sm"
+                        />
+                      </td>
+                      <td className="py-4 px-4">
+                        <input 
+                          type="text" 
+                          value={variant.visible}
+                          onChange={(e) => handleVariantChange(index, 'visible', e.target.value)}
+                          className="w-20 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#0f8b80] focus:outline-none text-sm"
+                        />
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${variant.status === 'Active' ? 'bg-[#e2f5f3] text-[#0f8b80]' : 'bg-red-50 text-red-500'}`}>
+                          {variant.status}
+                        </span>
+                      </td>
+                      <td className="py-4 pl-4 text-right">
+                        <button 
+                          onClick={() => handleRemoveVariant(index)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {formData.variants.length === 0 && (
+            <p className="text-sm text-gray-400 text-center py-6">No variants added yet. Click &quot;Add More Variant&quot; to create one.</p>
+          )}
         </div>
 
-        {/* Tags */}
+        {/* ════════════════════ Tags ════════════════════ */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.03)]">
           <h2 className="text-base font-bold text-gray-900 mb-6">Tags</h2>
           <div className="relative mb-4">
@@ -417,49 +541,69 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* Discount */}
+        {/* ════════════════════ Discounts ════════════════════ */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.03)]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-base font-bold text-gray-900">Discount</h2>
-            <button className="border border-[#0f8b80] text-[#0f8b80] px-4 py-1.5 rounded-full text-xs font-bold hover:bg-[#0f8b80] hover:text-white transition-colors">
-              Add New Discount
+            <button 
+              onClick={handleAddDiscount}
+              className="flex items-center gap-1 border border-[#0f8b80] text-[#0f8b80] px-4 py-1.5 rounded-full text-xs font-bold hover:bg-[#0f8b80] hover:text-white transition-colors"
+            >
+              <Plus size={14} /> Add New Discount
             </button>
           </div>
           
-          <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-gray-700">1 Discount</span>
-                <div className="w-8 h-4 bg-[#0f8b80] rounded-full relative cursor-pointer">
-                  <div className="w-3 h-3 bg-white rounded-full absolute right-0.5 top-0.5"></div>
+          <div className="space-y-4">
+            {formData.discounts.map((discount, index) => (
+              <div key={index} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-gray-700">{index + 1} Discount</span>
+                    <div className="w-8 h-4 bg-[#0f8b80] rounded-full relative cursor-pointer">
+                      <div className="w-3 h-3 bg-white rounded-full absolute right-0.5 top-0.5"></div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => handleRemoveDiscount(index)}
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <input
+                    type="text"
+                    value={discount.title}
+                    onChange={(e) => handleDiscountChange(index, 'title', e.target.value)}
+                    placeholder="Discount Title"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80]"
+                  />
+                  <input
+                    type="text"
+                    value={discount.price}
+                    onChange={(e) => handleDiscountChange(index, 'price', e.target.value)}
+                    placeholder="Discount Price"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80]"
+                  />
+                  <input
+                    type="text"
+                    value={discount.duration}
+                    onChange={(e) => handleDiscountChange(index, 'duration', e.target.value)}
+                    placeholder="Discount Duration"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80]"
+                  />
                 </div>
               </div>
-              <button className="text-gray-400 hover:text-red-500">
-                <Trash2 size={16} />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input
-                type="text"
-                placeholder="Discount Title"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80]"
-              />
-              <input
-                type="text"
-                placeholder="Discount Price"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80]"
-              />
-              <input
-                type="text"
-                placeholder="Discount Duration"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80]"
-              />
-            </div>
+            ))}
+
+            {formData.discounts.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-6">No discounts added yet. Click &quot;Add New Discount&quot; to create one.</p>
+            )}
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* ════════════════════ Action Buttons ════════════════════ */}
         <div className="flex justify-end gap-3 pt-4">
           <Link 
             href="/admin/products"
