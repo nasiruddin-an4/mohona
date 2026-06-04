@@ -26,6 +26,25 @@ export default function PaymentPage() {
     bkashTrxId: ''
   });
 
+  // Auto-fill from local storage on mount
+  useEffect(() => {
+    const savedDetails = localStorage.getItem('mohona_customer_details');
+    if (savedDetails) {
+      try {
+        const parsed = JSON.parse(savedDetails);
+        setFormData(prev => ({
+          ...prev,
+          fullName: parsed.fullName || '',
+          email: parsed.email || '',
+          phone: parsed.phone || '',
+          address: parsed.address || '',
+        }));
+      } catch (e) {
+        console.error('Failed to parse saved customer details', e);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     setMounted(true);
     if (items.length === 0 && !orderSuccess) {
@@ -73,6 +92,14 @@ export default function PaymentPage() {
       const data = await res.json();
       
       if (data.success) {
+        // Save customer details to local storage for future auto-fill
+        localStorage.setItem('mohona_customer_details', JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+        }));
+
         clearCart();
         setOrderSuccess(data.data);
       } else {

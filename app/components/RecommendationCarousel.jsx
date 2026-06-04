@@ -89,7 +89,7 @@ export default function RecommendationCarousel({ products = [], loading = false 
               className="min-w-[calc(100%/2)] sm:min-w-[calc((100%-16px)/3)] lg:min-w-[calc((100%-64px)/5)] bg-white border border-gray-100 rounded-2xl p-4 flex flex-col snap-start hover:shadow-lg transition-all duration-300"
             >
               <Link href={`/product/${product.slug || product._id || product.product_id}`} className="aspect-square mb-4 flex items-center justify-center overflow-hidden block">
-                 <img src={product.cover_image || product.image_url || "/images/placeholder.jpg"} className="w-full h-full object-contain hover:scale-105 transition-transform duration-500 mix-blend-multiply" alt={product.name} />
+                 <img src={(product.product_images?.length > 0 ? product.product_images[0] : null) || product.cover_image || product.image_url || "/images/placeholder.jpg"} className="w-full h-full object-contain hover:scale-105 transition-transform duration-500 mix-blend-multiply" alt={product.name} />
               </Link>
 
               <div className="flex-1 space-y-2">

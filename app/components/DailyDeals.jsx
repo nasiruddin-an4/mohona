@@ -101,7 +101,7 @@ export default function DailyDeals({ products = [], loading = false }) {
               {/* Product Image */}
               <Link href={`/product/${product.slug || product._id || product.product_id}`} className="aspect-square mb-4 flex items-center justify-center overflow-hidden block">
                  <img 
-                  src={product.cover_image || product.image_url || "/images/placeholder.jpg"} 
+                  src={(product.product_images?.length > 0 ? product.product_images[0] : null) || product.cover_image || product.image_url || "/images/placeholder.jpg"} 
                   className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-105" 
                   alt={product.name} 
                  />

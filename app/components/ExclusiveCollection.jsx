@@ -77,11 +77,11 @@ export default function ExclusiveCollection({ products = [], loading = false }) 
             <SwiperSlide key={product._id || product.id}>
               <Link href={`/product/${product.slug || product._id || product.id}`} className="flex flex-col group block">
                 {/* Image Container */}
-                <div className="relative bg-[#f4f5f7] rounded-2xl p-8 flex items-center justify-center aspect-square overflow-hidden">
+                <div className="relative bg-[#f4f5f7] rounded-2xl flex items-center justify-center aspect-square overflow-hidden">
                   <img
-                    src={(product.cover_image && !product.cover_image.startsWith('/') && !product.cover_image.startsWith('http') ? `/images/${product.cover_image}` : product.cover_image) || product.image_url || "/images/placeholder.jpg"}
+                    src={(product.product_images?.length > 0 ? product.product_images[0] : null) || (product.cover_image && !product.cover_image.startsWith('/') && !product.cover_image.startsWith('http') ? `/images/${product.cover_image}` : product.cover_image) || product.image_url || "/images/placeholder.jpg"}
                     alt={product.name}
-                    className="w-full h-full object-contain p-8 mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* Discount Badge */}
                   {product.discount_pct > 0 && (
@@ -105,9 +105,7 @@ export default function ExclusiveCollection({ products = [], loading = false }) 
                 {/* Product Details */}
                 <div className="flex flex-col flex-grow mt-4 px-1">
                   <div className="text-[10px] text-gray-400 font-medium mb-1">Code: LSHR{String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}</div>
-                  <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wider mb-1">
-                    {product.category}
-                  </p>
+
                   <h3 className="text-[16px] font-bold text-slate-900 mb-2">
                     {product.name}
                   </h3>

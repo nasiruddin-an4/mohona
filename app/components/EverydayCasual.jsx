@@ -73,7 +73,7 @@ export default function EverydayCasual({ products = [], loading = false }) {
               {/* Image Container */}
               <Link href={`/product/${product.slug || product._id}`} className="relative aspect-[3/4] bg-gray-50 mb-4 overflow-hidden rounded-sm block">
                 <img 
-                  src={product.cover_image || product.image_url || "/images/placeholder.jpg"} 
+                  src={(product.product_images?.length > 0 ? product.product_images[0] : null) || product.cover_image || product.image_url || "/images/placeholder.jpg"} 
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 mix-blend-multiply"
                 />
