@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCartStore } from '../../../store/useCartStore';
 import { useSidebarStore } from '../../../store/useSidebarStore';
-import { ChevronRight, ChevronLeft, ShoppingCart, Copy, Store, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ShoppingCart, Copy, Store, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import Link from 'next/link';
 import ImageZoom from '../../../components/ImageZoom';
 
@@ -19,6 +19,17 @@ export default function ProductDetailsPage() {
   const [infoExpanded, setInfoExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(true);
   const [selectedUnit, setSelectedUnit] = useState('N/A');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopySku = () => {
+    if (product) {
+      const formattedId = product._id.slice(-6);
+      const sku = `LSHR${formattedId}`;
+      navigator.clipboard.writeText(sku);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -117,8 +128,12 @@ export default function ProductDetailsPage() {
 
           <div className="flex items-center gap-2 text-[13px] text-gray-600 mb-8">
             <span>SKU: {displaySku}</span>
-            <button className="text-gray-400 hover:text-gray-900 transition-colors">
-              <Copy size={14} />
+            <button 
+              onClick={handleCopySku}
+              className={`${copied ? 'text-green-600' : 'text-gray-400 hover:text-gray-900'} transition-colors`}
+              title="Copy SKU"
+            >
+              {copied ? <Check size={14} /> : <Copy size={14} />}
             </button>
           </div>
 
