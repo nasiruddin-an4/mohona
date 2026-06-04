@@ -7,26 +7,30 @@ export default function Hero() {
   return (
     <div className="w-full flex flex-col">
       {/* Top Banner Section - Full Width Breakout */}
-      <section className="w-screen relative left-[50%] right-[50%] -ml-[50vw] -mr-[50vw] bg-gradient-to-r from-red-900 via-red-700 to-red-900 text-white py-16 md:py-28 flex flex-col items-center justify-center text-center px-4">
-        <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">
-          Everything You Need, Every Day
-        </h1>
-        <p className="text-lg md:text-xl font-light mb-8 max-w-3xl mx-auto leading-relaxed">
-          Bangladesh Coast Guard Family Welfare Association-supervised reliable institution for handicrafts and home decoration items.
-        </p>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/category/men"
-            className="border border-white hover:bg-white hover:text-[#2a2d96] text-white px-12 py-2.5 rounded-sm font-medium transition-all"
-          >
-            Men
-          </Link>
-          <Link
-            href="/category/women"
-            className="border border-white hover:bg-white hover:text-[#2a2d96] text-white px-12 py-2.5 rounded-sm font-medium transition-all"
-          >
-            Women
-          </Link>
+      <section className="w-screen relative left-[50%] right-[50%] -ml-[50vw] -mr-[50vw] text-white pt-32 pb-12 md:pt-48 md:pb-16 flex flex-col items-center justify-end text-center px-4 overflow-hidden h-[80vh]">
+
+        {/* Background Video */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        >
+          <source src="/video.mp4" type="video/mp4" />
+        </video>
+
+        {/* Brand Colored Overlay for Text Readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-0 mix-blend-multiply"></div>
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center w-full mt-auto">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-md">
+            Everything You Need, Every Day
+          </h1>
+          <p className="text-lg md:text-xl font-light mb-2 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+            Bangladesh Coast Guard Family Welfare Association-supervised reliable institution for handicrafts and home decoration items.
+          </p>
         </div>
       </section>
     </div>

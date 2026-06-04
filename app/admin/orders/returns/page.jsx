@@ -1,35 +1,49 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ChevronDown, Eye, RefreshCcw, CheckCircle, Clock, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ReturnsPage() {
   const [timeFilter, setTimeFilter] = useState('All Time');
-  
-  // Mock Summary Data
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await fetch('/api/orders', { cache: 'no-store' });
+        const data = await res.json();
+        if (data.success) {
+          // Filter only Returned or Refunded orders
+          const returns = data.data.filter(o => ['Returned', 'Refunded'].includes(o.status));
+          setOrders(returns);
+        }
+      } catch (error) {
+        console.error("Failed to fetch returns", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
+
+  const pendingReturns = orders.filter(o => o.status === 'Returned').length;
+  const approvedReturns = orders.filter(o => o.status === 'Refunded').length;
+
+  // Real Summary Data
   const summaryCards = [
-    { title: 'Total Returns', count: '434', icon: RefreshCcw, bg: 'bg-[#bfdbfe]', text: 'text-blue-900', iconColor: 'text-blue-600' },
-    { title: 'Pending Approval', count: '45', icon: Clock, bg: 'bg-[#fef08a]', text: 'text-yellow-900', iconColor: 'text-yellow-600' },
-    { title: 'Approved', count: '312', icon: CheckCircle, bg: 'bg-[#dcfce7]', text: 'text-emerald-900', iconColor: 'text-emerald-600' },
-    { title: 'Rejected', count: '77', icon: XCircle, bg: 'bg-[#fee2e2]', text: 'text-red-900', iconColor: 'text-red-600' },
+    { title: 'Total Returns', count: orders.length, icon: RefreshCcw, bg: 'bg-[#bfdbfe]', text: 'text-blue-900', iconColor: 'text-blue-600' },
+    { title: 'Pending Approval', count: pendingReturns, icon: Clock, bg: 'bg-[#fef08a]', text: 'text-yellow-900', iconColor: 'text-yellow-600' },
+    { title: 'Approved', count: approvedReturns, icon: CheckCircle, bg: 'bg-[#dcfce7]', text: 'text-emerald-900', iconColor: 'text-emerald-600' },
+    { title: 'Rejected', count: 0, icon: XCircle, bg: 'bg-[#fee2e2]', text: 'text-red-900', iconColor: 'text-red-600' },
   ];
 
-  // Mock Returns Data
-  const mockReturns = [
-    { returnId: 'RET-0012', orderId: '#73423', customer: 'Alexa Smith', amount: '$100.00', reason: 'Damaged Product', status: 'Pending', date: '11 Sept, 2027' },
-    { returnId: 'RET-0013', orderId: '#73424', customer: 'John Doe', amount: '$45.50', reason: 'Wrong Size', status: 'Approved', date: '10 Sept, 2027' },
-    { returnId: 'RET-0014', orderId: '#73425', customer: 'Sarah Connor', amount: '$210.00', reason: 'Not as Expected', status: 'Rejected', date: '09 Sept, 2027' },
-    { returnId: 'RET-0015', orderId: '#73426', customer: 'Mike Johnson', amount: '$75.00', reason: 'Defective', status: 'Approved', date: '08 Sept, 2027' },
-    { returnId: 'RET-0016', orderId: '#73427', customer: 'Emma Watson', amount: '$120.00', reason: 'Changed Mind', status: 'Pending', date: '08 Sept, 2027' },
-    { returnId: 'RET-0017', orderId: '#73428', customer: 'Bruce Wayne', amount: '$500.00', reason: 'Damaged Product', status: 'Approved', date: '07 Sept, 2027' },
-  ];
 
   const getStatusStyle = (status) => {
     switch(status?.toLowerCase()) {
-      case 'approved': return 'bg-[#dcfce7] text-emerald-700';
-      case 'pending': return 'bg-[#fef3c7] text-amber-700';
-      case 'rejected': return 'bg-red-100 text-red-700';
+      case 'refunded': return 'bg-[#dcfce7] text-emerald-700';
+      case 'returned': return 'bg-[#fef3c7] text-amber-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -117,7 +131,6 @@ export default function ReturnsPage() {
                 <th className="px-6 py-4 w-12">
                   <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#0f8b80] focus:ring-[#0f8b80]" />
                 </th>
-                <th className="px-4 py-4">Return ID</th>
                 <th className="px-4 py-4">Order ID</th>
                 <th className="px-4 py-4">Customer</th>
                 <th className="px-4 py-4">Amount</th>
@@ -128,28 +141,37 @@ export default function ReturnsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {mockReturns.map((item, index) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="px-4 py-8 text-center text-gray-500 font-medium">Loading returns...</td>
+                </tr>
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="px-4 py-8 text-center text-gray-500 font-medium">No returned orders found.</td>
+                </tr>
+              ) : orders.map((order, index) => (
                 <tr key={index} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#0f8b80] focus:ring-[#0f8b80]" />
                   </td>
-                  <td className="px-4 py-4 font-bold text-gray-700">{item.returnId}</td>
                   <td className="px-4 py-4 text-[#0f8b80] font-bold hover:underline cursor-pointer">
-                    <Link href={`/admin/orders`}>{item.orderId}</Link>
+                    <Link href={`/admin/orders/${order.order_number || order._id}`}>{order.order_number || order._id?.slice(-6).toUpperCase()}</Link>
                   </td>
-                  <td className="px-4 py-4 font-bold text-gray-900">{item.customer}</td>
-                  <td className="px-4 py-4 font-bold text-gray-900">{item.amount}</td>
-                  <td className="px-4 py-4 text-gray-500">{item.reason}</td>
+                  <td className="px-4 py-4 font-bold text-gray-900">{order.customer_name}</td>
+                  <td className="px-4 py-4 font-bold text-gray-900">BDT {order.total_amount?.toLocaleString()}</td>
+                  <td className="px-4 py-4 text-gray-500">N/A</td>
                   <td className="px-4 py-4 text-center">
-                    <span className={`inline-flex px-3 py-1 text-[11px] font-bold rounded-md ${getStatusStyle(item.status)}`}>
-                      {item.status}
+                    <span className={`inline-flex px-3 py-1 text-[11px] font-bold rounded-md ${getStatusStyle(order.status)}`}>
+                      {order.status}
                     </span>
                   </td>
-                  <td className="px-4 py-4 text-gray-500">{item.date}</td>
+                  <td className="px-4 py-4 text-gray-500">
+                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
+                  </td>
                   <td className="px-4 py-4 text-center">
-                    <button className="text-gray-400 hover:text-[#0f8b80] transition-colors">
+                    <Link href={`/admin/orders/${order.order_number || order._id}`} className="text-gray-400 hover:text-[#0f8b80] transition-colors">
                       <Eye size={16} strokeWidth={2.5} />
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}

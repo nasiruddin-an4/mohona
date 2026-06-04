@@ -1,13 +1,35 @@
 'use client';
 
-import React from 'react';
-import { MOCK_PRODUCTS } from '../../lib/data';
+import React, { useEffect, useState } from 'react';
 import { getDemandWindow, formatDeliveryDate, calculateDeliveryDate } from '../../lib/utils';
-import { Calendar, Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DemandPage() {
-  const demandProducts = MOCK_PRODUCTS.filter(p => p.is_demand_based);
+  const [demandProducts, setDemandProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        if (data.success) {
+          // Just take the first 4 products as mock demand products for now
+          setDemandProducts(data.data.slice(0, 4).map(p => ({
+            ...p,
+            demand_days: Math.floor(Math.random() * 3) + 2 // 2-4 days
+          })));
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   const window = getDemandWindow();
   const nextDelivery = calculateDeliveryDate();
 
@@ -73,25 +95,31 @@ export default function DemandPage() {
       {/* Demand Products List */}
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900 px-2">Demand-Based Products</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {demandProducts.map((product) => (
-            <div key={product.product_id} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-6 hover:border-blue-200 transition-colors">
-              <div className="w-24 h-24 bg-gray-50 rounded-2xl p-4 shrink-0">
-                <img src={product.image_url} alt="" className="w-full h-full object-contain" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-lg text-gray-900">{product.name}</h4>
-                <p className="text-sm text-gray-500 mb-3">{product.category}</p>
-                <div className="flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 w-max px-3 py-1 rounded-full">
-                  <CheckCircle2 size={12} /> {product.demand_days}-Day Demand Cycle
+        {loading ? (
+          <div className="flex justify-center items-center py-10">
+            <Loader2 className="animate-spin text-blue-600" size={40} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {demandProducts.map((product) => (
+              <div key={product._id || product.id || product.product_id} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-6 hover:border-blue-200 transition-colors">
+                <div className="w-24 h-24 bg-gray-50 rounded-2xl p-4 shrink-0 overflow-hidden">
+                  <img src={product.cover_image || product.image_url || "/images/placeholder.jpg"} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
                 </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg text-gray-900 line-clamp-1">{product.name}</h4>
+                  <p className="text-sm text-gray-500 mb-3">{product.category}</p>
+                  <div className="flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 w-max px-3 py-1 rounded-full">
+                    <CheckCircle2 size={12} /> {product.demand_days}-Day Demand Cycle
+                  </div>
+                </div>
+                <Link href={`/product/${product.slug || product._id || product.product_id}`} className="p-3 bg-gray-50 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
+                  <ArrowRight size={20} />
+                </Link>
               </div>
-              <Link href="/shop" className="p-3 bg-gray-50 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
-                <ArrowRight size={20} />
-              </Link>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

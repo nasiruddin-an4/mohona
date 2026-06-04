@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, X } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Search, Tag as TagIcon } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { renderToString } from 'react-dom/server';
 
@@ -20,6 +20,7 @@ export default function TagsPage() {
     description: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchTags();
@@ -127,59 +128,93 @@ export default function TagsPage() {
     }
   };
 
+  const filteredTags = tags.filter(tag => 
+    tag.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    tag.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="container mx-auto p-2 sm:p-6 min-h-[calc(100vh-120px)] w-full max-w-full animate-in fade-in duration-500 font-sans flex flex-col">
+    <div className="container mx-auto p-2 sm:p-6 min-h-[calc(100vh-120px)] w-full max-w-full animate-in fade-in duration-500 font-sans flex flex-col gap-6">
       
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tags</h1>
-          <p className="text-sm font-medium text-gray-500 mt-1">Manage product tags</p>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Tags</h1>
+            <p className="text-sm font-medium text-gray-500 mt-1">Manage your product tags</p>
+          </div>
+          <button 
+            onClick={openAddModal}
+            className="flex items-center gap-2 bg-[#0f8b80] hover:bg-[#0c766d] text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg active:scale-95"
+          >
+            <Plus size={16} strokeWidth={3} />
+            Add Tag
+          </button>
         </div>
-        <button 
-          onClick={openAddModal}
-          className="flex items-center gap-2 bg-[#0f8b80] hover:bg-[#0c766d] text-white px-5 py-2.5 rounded-full text-sm font-bold transition-colors"
-        >
-          <Plus size={16} />
-          Add Tag
-        </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex-1 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex-1 overflow-hidden flex flex-col">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-gray-50 flex items-center justify-between">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input 
+              type="text" 
+              placeholder="Search tags..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50/80 border border-gray-100 rounded-full text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400 font-medium"
+            />
+          </div>
+          <div className="hidden md:block text-xs font-bold text-gray-400">
+            {filteredTags.length} Tags Found
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0f8b80]"></div>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-[13px] whitespace-nowrap">
+            <table className="w-full text-left text-[13px]">
               <thead className="text-gray-900 font-bold border-b border-gray-100 bg-gray-50/50">
                 <tr>
-                  <th className="px-6 py-4">Name</th>
-                  <th className="px-6 py-4">Description</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4 w-[80%]">Tag Details</th>
+                  <th className="px-6 py-4 text-right w-[20%]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {tags.length > 0 ? (
-                  tags.map((tag) => (
-                    <tr key={tag._id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-bold text-gray-900">{tag.name}</td>
-                      <td className="px-6 py-4 text-gray-500 max-w-[400px] truncate">{tag.description || '-'}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-3">
+              <tbody className="divide-y divide-gray-50">
+                {filteredTags.length > 0 ? (
+                  filteredTags.map((tag) => (
+                    <tr key={tag._id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 mt-1 group-hover:scale-110 transition-transform">
+                            <TagIcon size={20} strokeWidth={2.5} />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900 text-sm mb-1">{tag.name}</h3>
+                            <p className="text-gray-500 text-xs leading-relaxed max-w-sm line-clamp-2">
+                              {tag.description || <span className="italic text-gray-400">No description provided</span>}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 align-top pt-5 text-right">
+                        <div className="flex items-center justify-end gap-2">
                           <button 
                             onClick={() => openEditModal(tag)}
-                            className="text-gray-400 hover:text-[#0f8b80] transition-colors"
+                            className="p-2 text-gray-400 hover:text-[#0f8b80] hover:bg-[#0f8b80]/10 rounded-lg transition-colors"
                             title="Edit"
                           >
-                            <Edit size={16} strokeWidth={2} />
+                            <Edit size={16} strokeWidth={2.5} />
                           </button>
                           <button 
                             onClick={() => handleDelete(tag._id)}
-                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete"
                           >
-                            <Trash2 size={16} strokeWidth={2} />
+                            <Trash2 size={16} strokeWidth={2.5} />
                           </button>
                         </div>
                       </td>

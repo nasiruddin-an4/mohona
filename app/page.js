@@ -1,4 +1,5 @@
 "use client";
+import React, { useState, useEffect } from "react";
 import Hero from "./components/Hero";
 import CollectionBanners from "./components/CollectionBanners";
 import ExclusiveCollection from "./components/ExclusiveCollection";
@@ -13,6 +14,26 @@ import MoreToDiscover from "./components/MoreToDiscover";
 import AboutSection from "./components/AboutSection";
 
 export default function Home() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        if (data.success) {
+          setProducts(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   return (
     <div className="space-y-4">
       {/* Hero Section */}
@@ -22,25 +43,25 @@ export default function Home() {
       <CollectionBanners />
 
       {/* Exclusive Collection */}
-      <ExclusiveCollection />
+      <ExclusiveCollection products={products} loading={loading} />
 
       {/* Promo Banner */}
       <PromoBanner />
 
       {/* Everyday Casual Section */}
-      <EverydayCasual />
+      <EverydayCasual products={products} loading={loading} />
 
       {/* Shop by Category Bento Grid */}
       {/* <CategoryBento /> */}
 
       {/* Daily Deals Carousel */}
-      {/* <DailyDeals /> */}
+      {/* <DailyDeals products={products} loading={loading} /> */}
 
       {/* Featured Offers Section */}
-      <FeaturedOffers />
+      <FeaturedOffers products={products} loading={loading} />
 
       {/* You Might Also Like Carousel */}
-      {/* <RecommendationCarousel /> */}
+      {/* <RecommendationCarousel products={products} loading={loading} /> */}
 
     </div>
   );

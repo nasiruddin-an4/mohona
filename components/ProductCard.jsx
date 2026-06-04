@@ -9,6 +9,8 @@ import {
   Clock,
   AlertTriangle,
   ShoppingBag,
+  ShoppingCart,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { calculateDeliveryDate, formatDeliveryDate } from "../lib/utils";
@@ -62,6 +64,9 @@ export default function ProductCard({ product }) {
     );
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
+    if (minPrice === maxPrice) {
+      return `${minPrice.toLocaleString()}৳`;
+    }
     return `${minPrice.toLocaleString()}৳ — ${maxPrice.toLocaleString()}৳`;
   }, [product.available_units, safePrice]);
 
@@ -84,27 +89,30 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="flex flex-col group relative">
+    <div className="flex flex-col group relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-3 h-full">
       {/* Image Container */}
-      <Link href={`/product/${product._id || product.product_id}`} className="relative aspect-[3/4] overflow-hidden bg-[#f4f4f4] mb-2 block">
-        {(product.cover_image || product.image_url) ? (
-          <img
-            src={product.cover_image || product.image_url}
-            alt={product.name}
-            className={`object-cover w-full h-full transition-transform duration-700 group-hover:scale-105 ${isOutOfStock ? "grayscale opacity-30" : ""}`}
-          />
-        ) : (
-          <div className={`w-full h-full flex items-center justify-center text-gray-400 text-xs ${isOutOfStock ? "opacity-30" : ""}`}>
-            No Image
-          </div>
-        )}
+      <Link href={`/product/${product.slug || product._id}`} className="relative aspect-square overflow-hidden bg-[#e5e7eb] rounded-xl mb-3 block">
+        {(() => {
+          const displayImage = (product.product_images?.length > 0 ? product.product_images[0] : null) || product.image_url || product.cover_image;
+          return displayImage ? (
+            <img
+              src={displayImage}
+              alt={product.name}
+              className={`object-cover w-full h-full transition-transform duration-700 group-hover:scale-105 mix-blend-multiply ${isOutOfStock ? "grayscale opacity-30" : ""}`}
+            />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center text-gray-400 text-xs ${isOutOfStock ? "opacity-30" : ""}`}>
+              No Image
+            </div>
+          );
+        })()}
 
         {/* Discount Badge */}
-        {product.discount_pct && !isOutOfStock && (
-          <div className="absolute top-3 left-3 bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm z-10 uppercase">
+        {product.discount_pct && !isOutOfStock ? (
+          <div className="absolute top-3 left-3 bg-black text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm z-10">
             {product.discount_pct}% OFF
           </div>
-        )}
+        ) : null}
 
         {/* Out of Stock Badge */}
         {isOutOfStock && (
@@ -112,25 +120,44 @@ export default function ProductCard({ product }) {
             Out of Stock
           </div>
         )}
-
-        {/* Limited Badge */}
-        {isLimited && !isOutOfStock && (
-          <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm z-10 uppercase tracking-wide">
-            Limited
-          </div>
-        )}
       </Link>
 
       {/* Content */}
-      <div className="flex flex-col px-1">
-        <Link href={`/product/${product._id || product.product_id}`}>
-          <h3 className="text-lg font-medium text-gray-800 leading-snug mb-1.5 transition-colors line-clamp-2">
+      <div className="flex flex-col flex-1">
+        <div className="text-[10px] text-gray-400 font-medium mb-1">Code: LSHR{String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}</div>
+        <Link href={`/product/${product.slug || product._id}`}>
+          <h3 className="text-[15px] font-medium text-gray-800 leading-snug mb-2 transition-colors line-clamp-1 hover:text-black">
             {product.name}
           </h3>
         </Link>
-        <div className="text-[13px] font-bold text-gray-900">
-          {priceRange} <span className="font-normal text-gray-500 ml-0.5 text-[11px]">+ VAT</span>
+        
+        <div className="flex items-center flex-wrap gap-2 mb-4 mt-auto">
+          <span className="text-[20px] font-black text-gray-900 leading-none">{priceRange}</span>
+          {/* Mock Original Price if there's a discount */}
+          {product.discount_pct > 0 && (
+            <span className="text-xs text-gray-400 line-through">
+              ৳{Math.round(safePrice / (1 - product.discount_pct / 100))}
+            </span>
+          )}
+          
+          <div className="flex items-center gap-0.5 ml-auto mt-1 sm:mt-0">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} size={12} className="text-yellow-400 fill-yellow-400" />
+            ))}
+            <span className="bg-[#fef08a] text-yellow-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">5.0</span>
+          </div>
         </div>
+
+        <button 
+          onClick={(e) => {
+             e.preventDefault();
+             handleAddToCart();
+          }}
+          className="w-full bg-[#111827] text-white flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold hover:bg-black transition-colors"
+        >
+          <ShoppingCart size={16} />
+          Add to cart
+        </button>
       </div>
     </div>
   );

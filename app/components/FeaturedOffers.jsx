@@ -28,7 +28,7 @@ const OFFERS = [
 
 export default function FeaturedOffers() {
   return (
-    <section className="py-12 container mx-auto">
+    <section className="py-12 container mx-auto px-6">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Our Featured Offers</h2>
         <Link href="/shop" className="text-sm font-bold text-gray-500 hover:text-red-600 transition-colors">

@@ -9,7 +9,7 @@ import Link from 'next/link';
 import ImageZoom from '../../../components/ImageZoom';
 
 export default function ProductDetailsPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useSidebarStore((state) => state.openCart);
@@ -23,7 +23,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/products/${id}`);
+        const res = await fetch(`/api/products/${slug}`);
         const data = await res.json();
         if (data.success) {
           setProduct(data.data);
@@ -35,8 +35,8 @@ export default function ProductDetailsPage() {
         setLoading(false);
       }
     };
-    fetchProduct();
-  }, [id]);
+    if (slug) fetchProduct();
+  }, [slug]);
 
   if (loading) {
     return (
@@ -106,9 +106,10 @@ export default function ProductDetailsPage() {
 
         {/* Right: Product Info */}
         <div className="w-full lg:w-[35%] flex flex-col pt-2 pr-4 lg:pr-10">
-          <h1 className="text-[22px] font-light text-gray-900 mb-4 leading-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 leading-tight">
             {product.name}
           </h1>
+          <div className="text-sm text-gray-500 font-medium mb-4">Product Code: {displaySku}</div>
           
           <div className="text-[15px] text-gray-900 mb-4">
             ৳ {product.unit_price.toFixed(2)} <span className="text-gray-500">+ VAT</span>

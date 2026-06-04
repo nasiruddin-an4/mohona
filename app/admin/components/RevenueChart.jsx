@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ChevronDown, TrendingUp } from 'lucide-react';
 import {
   BarChart,
@@ -14,22 +14,37 @@ import {
   ComposedChart
 } from 'recharts';
 
-const data = [
-  { name: 'Jan', revenue: 15000, order: 8000 },
-  { name: 'Feb', revenue: 10000, order: 9000 },
-  { name: 'Mar', revenue: 20000, order: 12000 },
-  { name: 'Apr', revenue: 18000, order: 10000 },
-  { name: 'May', revenue: 12000, order: 8000 },
-  { name: 'Jun', revenue: 32000, order: 18000 },
-  { name: 'Jul', revenue: 22000, order: 15000 },
-  { name: 'Aug', revenue: 18000, order: 10000 },
-  { name: 'Sep', revenue: 20000, order: 12000 },
-  { name: 'Oct', revenue: 28000, order: 14000 },
-  { name: 'Nov', revenue: 30000, order: 22000 },
-  { name: 'Dec', revenue: 36000, order: 18000 },
-];
-
-export default function RevenueChart() {
+export default function RevenueChart({ orders = [] }) {
+  const { chartData, totalRevenue, totalOrdered } = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyData = months.map(m => ({ name: m, revenue: 0, order: 0 }));
+    
+    let totalRev = 0;
+    let totalOrd = 0;
+    
+    orders.forEach(order => {
+      if (!order.createdAt) return;
+      const date = new Date(order.createdAt);
+      
+      // Filter for current year
+      if (date.getFullYear() !== new Date().getFullYear()) return;
+      
+      const monthIndex = date.getMonth();
+      const amount = order.total_amount || 0;
+      
+      // Total Ordered Value
+      monthlyData[monthIndex].order += amount;
+      totalOrd += amount;
+      
+      // Paid Revenue
+      if (order.payment_status === 'Paid') {
+        monthlyData[monthIndex].revenue += amount;
+        totalRev += amount;
+      }
+    });
+    
+    return { chartData: monthlyData, totalRevenue: totalRev, totalOrdered: totalOrd };
+  }, [orders]);
   return (
     <div className="bg-white rounded-[1.5rem] p-6 border border-gray-100 shadow-sm h-full flex flex-col">
       <div className="flex justify-between items-start mb-6">
@@ -42,21 +57,21 @@ export default function RevenueChart() {
                  <span className="text-sm font-bold text-gray-500">Revenue</span>
                </div>
                <div className="flex items-center gap-3">
-                 <span className="text-2xl font-bold text-gray-900">$37,802</span>
+                 <span className="text-2xl font-bold text-gray-900">BDT {totalRevenue.toLocaleString()}</span>
                  <div className="flex items-center gap-1 text-xs font-bold text-green-500">
-                   <TrendingUp size={14} /> 0.56%
+                   <TrendingUp size={14} /> 0.00%
                  </div>
                </div>
              </div>
              <div>
                <div className="flex items-center gap-2 mb-1">
                  <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
-                 <span className="text-sm font-bold text-gray-500">Order</span>
+                 <span className="text-sm font-bold text-gray-500">Total Ordered</span>
                </div>
                <div className="flex items-center gap-3">
-                 <span className="text-2xl font-bold text-gray-900">$28,305</span>
+                 <span className="text-2xl font-bold text-gray-900">BDT {totalOrdered.toLocaleString()}</span>
                  <div className="flex items-center gap-1 text-xs font-bold text-green-500">
-                   <TrendingUp size={14} /> 0.56%
+                   <TrendingUp size={14} /> 0.00%
                  </div>
                </div>
              </div>
@@ -71,7 +86,7 @@ export default function RevenueChart() {
 
       <div className="flex-1 min-h-[300px] mt-4">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+          <ComposedChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
             <XAxis 
                dataKey="name" 

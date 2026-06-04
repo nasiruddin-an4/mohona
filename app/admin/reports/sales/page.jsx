@@ -1,34 +1,110 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DollarSign, ShoppingCart, TrendingUp, Download, Calendar, ArrowUpRight, BarChart3, PieChart } from 'lucide-react';
 
 export default function SalesReportsPage() {
   const [dateRange, setDateRange] = useState('This Month');
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [ordersRes, productsRes] = await Promise.all([
+          fetch('/api/orders', { cache: 'no-store' }),
+          fetch('/api/products', { cache: 'no-store' })
+        ]);
+        const ordersData = await ordersRes.json();
+        const productsData = await productsRes.json();
+        
+        if (ordersData.success) setOrders(ordersData.data);
+        if (productsData.success) setProducts(productsData.data);
+      } catch (error) {
+        console.error("Failed to fetch reports data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Compute Real Data
+  const validOrders = orders.filter(o => !['Cancelled', 'Returned', 'Refunded'].includes(o.status));
+  const totalRevenue = validOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const totalOrders = validOrders.length;
+  const averageOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders) : 0;
 
   const summaryCards = [
-    { title: 'Total Revenue', value: '$84,592.00', trend: '+8.2%', isPositive: true, icon: DollarSign, cardBg: 'bg-[#cbf4f0]', textColor: 'text-teal-900', iconColor: 'text-teal-600' },
-    { title: 'Total Orders', value: '1,249', trend: '-2.4%', isPositive: false, icon: ShoppingCart, cardBg: 'bg-[#caf4a2]', textColor: 'text-lime-900', iconColor: 'text-lime-700' },
-    { title: 'Average Order Value', value: '$67.72', trend: '+1.1%', isPositive: true, icon: TrendingUp, cardBg: 'bg-[#ffec99]', textColor: 'text-yellow-900', iconColor: 'text-yellow-700' },
-    { title: 'Conversion Rate', value: '3.8%', trend: '+3.2%', isPositive: true, icon: BarChart3, cardBg: 'bg-[#fce1f4]', textColor: 'text-pink-900', iconColor: 'text-pink-600' },
+    { title: 'Total Revenue', value: `BDT ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}`, trend: '+0.0%', isPositive: true, icon: DollarSign, cardBg: 'bg-[#cbf4f0]', textColor: 'text-teal-900', iconColor: 'text-teal-600' },
+    { title: 'Total Orders', value: totalOrders.toLocaleString(), trend: '+0.0%', isPositive: true, icon: ShoppingCart, cardBg: 'bg-[#caf4a2]', textColor: 'text-lime-900', iconColor: 'text-lime-700' },
+    { title: 'Average Order Value', value: `BDT ${averageOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2})}`, trend: '+0.0%', isPositive: true, icon: TrendingUp, cardBg: 'bg-[#ffec99]', textColor: 'text-yellow-900', iconColor: 'text-yellow-700' },
+    { title: 'Conversion Rate', value: 'N/A', trend: '0.0%', isPositive: true, icon: BarChart3, cardBg: 'bg-[#fce1f4]', textColor: 'text-pink-900', iconColor: 'text-pink-600' },
   ];
 
-  // Mock bar chart data
-  const barChartData = [
-    { label: '1', value: 30 }, { label: '2', value: 45 }, { label: '3', value: 25 },
-    { label: '4', value: 60 }, { label: '5', value: 75 }, { label: '6', value: 40 },
-    { label: '7', value: 85 }, { label: '8', value: 65 }, { label: '9', value: 95 },
-    { label: '10', value: 50 }, { label: '11', value: 55 }, { label: '12', value: 80 },
-    { label: '13', value: 40 }, { label: '14', value: 70 }, { label: '15', value: 60 },
-  ];
+  // Group by Date for Chart (Last 15 days)
+  const last15Days = [];
+  for(let i=14; i>=0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toLocaleDateString();
+    
+    const dayOrders = validOrders.filter(o => new Date(o.createdAt).toLocaleDateString() === dateStr);
+    const dayRevenue = dayOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+    last15Days.push({ label: d.getDate().toString(), rawValue: dayRevenue });
+  }
+  const maxDayRevenue = Math.max(...last15Days.map(d => d.rawValue), 1);
+  const barChartData = last15Days.map(d => ({
+    label: d.label,
+    rawValue: d.rawValue,
+    value: (d.rawValue / maxDayRevenue) * 100
+  }));
 
-  const topProducts = [
-    { name: 'Matte Liquid Lipstick', category: 'Beauty', sales: 342, revenue: '$4,104.00' },
-    { name: 'Premium Leather Wallet', category: 'Accessories', sales: 215, revenue: '$8,600.00' },
-    { name: 'Wireless Noise-Canceling Headphones', category: 'Electronics', sales: 156, revenue: '$23,400.00' },
-    { name: 'Organic Cotton T-Shirt', category: 'Apparel', sales: 498, revenue: '$9,960.00' },
-    { name: 'Smart Fitness Watch', category: 'Electronics', sales: 124, revenue: '$18,600.00' },
-  ];
+  // Product & Category Stats
+  const productStats = {};
+  const categoryStats = {};
+  
+  validOrders.forEach(order => {
+    if(order.cart_items) {
+      order.cart_items.forEach(item => {
+        const product = products.find(p => p._id === item.product);
+        const catName = product?.category?.name || 'Uncategorized';
+        
+        if(!productStats[item.product_name]) {
+          productStats[item.product_name] = { name: item.product_name, category: catName, sales: 0, revenue: 0 };
+        }
+        productStats[item.product_name].sales += item.quantity || 1;
+        productStats[item.product_name].revenue += (item.price * (item.quantity || 1)) || 0;
+
+        if(!categoryStats[catName]) categoryStats[catName] = 0;
+        categoryStats[catName] += (item.price * (item.quantity || 1)) || 0;
+      });
+    }
+  });
+
+  const topProducts = Object.values(productStats).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  
+  const totalCatRevenue = Object.values(categoryStats).reduce((sum, v) => sum + v, 0);
+  const catEntries = Object.entries(categoryStats).sort((a, b) => b[1] - a[1]);
+  const colors = ['#0f8b80', '#f59e0b', '#3b82f6', '#8b5cf6', '#e5e7eb'];
+  
+  let currentPct = 0;
+  const gradientStops = catEntries.map((cat, idx) => {
+    const pct = totalCatRevenue > 0 ? (cat[1] / totalCatRevenue) * 100 : 0;
+    const start = currentPct;
+    currentPct += pct;
+    return `${colors[idx % colors.length]} ${start}% ${currentPct}%`;
+  }).join(', ');
+  const conicGradient = gradientStops ? `conic-gradient(${gradientStops})` : 'conic-gradient(#e5e7eb 0% 100%)';
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[calc(100vh-120px)]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0f8b80]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-2 sm:p-6 min-h-[calc(100vh-120px)] w-full max-w-full animate-in fade-in duration-500 font-sans flex flex-col gap-6">
@@ -79,7 +155,7 @@ export default function SalesReportsPage() {
               </div>
               <div>
                 <p className={`font-bold text-sm mb-1 uppercase tracking-wide opacity-80 ${card.textColor}`}>{card.title}</p>
-                <h3 className={`text-3xl font-bold ${card.textColor}`}>{card.value}</h3>
+                <h3 className={`text-2xl lg:text-3xl font-bold ${card.textColor}`}>{card.value}</h3>
               </div>
             </div>
           ))}
@@ -91,7 +167,7 @@ export default function SalesReportsPage() {
         {/* Main Chart */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-gray-900">Revenue Overview</h2>
+            <h2 className="text-lg font-bold text-gray-900">Revenue Overview (Last 15 Days)</h2>
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
               <span className="w-3 h-3 rounded-sm bg-[#0f8b80]"></span> Current Period
             </div>
@@ -102,7 +178,7 @@ export default function SalesReportsPage() {
             <div className="absolute inset-0 flex flex-col justify-between pb-6">
               {[4, 3, 2, 1, 0].map(i => (
                 <div key={i} className="w-full border-b border-gray-100 border-dashed flex items-end relative">
-                  <span className="absolute -top-3 -left-2 text-[10px] font-bold text-gray-400 bg-white pr-2">${i * 25}k</span>
+                  <span className="absolute -top-3 -left-2 text-[10px] font-bold text-gray-400 bg-white pr-2">{(maxDayRevenue * (i/4)).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
                 </div>
               ))}
             </div>
@@ -111,9 +187,9 @@ export default function SalesReportsPage() {
             <div className="relative z-10 flex items-end gap-2 sm:gap-4 w-full h-full pt-4 pl-8">
               {barChartData.map((data, idx) => (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end">
-                  {/* Tooltip on hover (simulated via CSS group) */}
+                  {/* Tooltip on hover */}
                   <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] font-bold py-1 px-2 rounded pointer-events-none transition-opacity z-20 whitespace-nowrap">
-                    ${(data.value * 1000).toLocaleString()}
+                    BDT {data.rawValue.toLocaleString()}
                   </div>
                   
                   {/* Bar */}
@@ -121,11 +197,9 @@ export default function SalesReportsPage() {
                     className="w-full bg-[#0f8b80]/20 group-hover:bg-[#0f8b80] rounded-t-md transition-all duration-300 relative overflow-hidden" 
                     style={{ height: `${data.value}%` }}
                   >
-                    {/* Subtle gradient effect on bar */}
                     <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/10"></div>
                   </div>
                   
-                  {/* X Axis Label */}
                   <span className="text-[10px] font-bold text-gray-400 absolute -bottom-5">{data.label}</span>
                 </div>
               ))}
@@ -140,9 +214,7 @@ export default function SalesReportsPage() {
           <div className="flex-1 flex flex-col items-center justify-center relative">
             {/* CSS-based Donut Chart Mock */}
             <div className="relative w-48 h-48 rounded-full flex items-center justify-center" 
-                 style={{ 
-                   background: 'conic-gradient(#0f8b80 0% 45%, #f59e0b 45% 75%, #3b82f6 75% 90%, #e5e7eb 90% 100%)' 
-                 }}>
+                 style={{ background: conicGradient }}>
               {/* Inner Circle */}
               <div className="w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
                 <span className="text-gray-400 text-xs font-bold uppercase">Total</span>
@@ -151,30 +223,16 @@ export default function SalesReportsPage() {
             </div>
             
             <div className="w-full mt-8 space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 font-medium text-gray-600">
-                  <div className="w-3 h-3 rounded-full bg-[#0f8b80]"></div> Electronics
+              {catEntries.length > 0 ? catEntries.map((cat, idx) => (
+                <div key={idx} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 font-medium text-gray-600">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors[idx % colors.length] }}></div> {cat[0]}
+                  </div>
+                  <span className="font-bold text-gray-900">{((cat[1] / totalCatRevenue) * 100).toFixed(1)}%</span>
                 </div>
-                <span className="font-bold text-gray-900">45%</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 font-medium text-gray-600">
-                  <div className="w-3 h-3 rounded-full bg-[#f59e0b]"></div> Fashion
-                </div>
-                <span className="font-bold text-gray-900">30%</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 font-medium text-gray-600">
-                  <div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div> Beauty
-                </div>
-                <span className="font-bold text-gray-900">15%</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 font-medium text-gray-600">
-                  <div className="w-3 h-3 rounded-full bg-gray-200"></div> Other
-                </div>
-                <span className="font-bold text-gray-900">10%</span>
-              </div>
+              )) : (
+                <div className="text-center text-gray-500 text-sm">No sales data yet</div>
+              )}
             </div>
           </div>
         </div>
@@ -199,7 +257,7 @@ export default function SalesReportsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {topProducts.map((product, idx) => (
+              {topProducts.length > 0 ? topProducts.map((product, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <span className="font-bold text-gray-800">{product.name}</span>
@@ -210,9 +268,13 @@ export default function SalesReportsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right font-bold text-gray-900">{product.sales}</td>
-                  <td className="px-6 py-4 text-right font-bold text-[#0f8b80]">{product.revenue}</td>
+                  <td className="px-6 py-4 text-right font-bold text-[#0f8b80]">BDT {product.revenue.toLocaleString()}</td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-8 text-gray-500">No products sold yet</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

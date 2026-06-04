@@ -1,18 +1,35 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-const topProducts = [
-  { id: 1, name: 'Neptune Longsleeve', price: 138, sales: 952, image: 'https://i.pravatar.cc/150?img=1' },
-  { id: 2, name: 'Ribbed Tank Top', price: 108, sales: 952, image: 'https://i.pravatar.cc/150?img=2' },
-  { id: 3, name: 'Ribbed modal T-shirt', price: 125, sales: 902, image: 'https://i.pravatar.cc/150?img=3' },
-  { id: 4, name: 'Oversized Motif T-shirt', price: 98, sales: 882, image: 'https://i.pravatar.cc/150?img=4' },
-  { id: 5, name: 'V-neck linen T-shirt', price: 158, sales: 869, image: 'https://i.pravatar.cc/150?img=5' },
-  { id: 6, name: 'Jersey thong body', price: 78, sales: 833, image: 'https://i.pravatar.cc/150?img=6' },
-];
+export default function TopSaleList({ orders = [] }) {
+  const topProducts = useMemo(() => {
+    if (!orders || orders.length === 0) return [];
+    
+    const productMap = {};
+    
+    orders.forEach(order => {
+      (order.items || []).forEach(item => {
+        const pId = item.product_id;
+        if (!productMap[pId]) {
+          productMap[pId] = {
+            id: pId,
+            name: item.name,
+            price: item.price,
+            image: item.image || 'https://via.placeholder.com/150',
+            sales: 0
+          };
+        }
+        productMap[pId].sales += item.quantity || 1;
+      });
+    });
+    
+    return Object.values(productMap)
+      .sort((a, b) => b.sales - a.sales)
+      .slice(0, 6);
+  }, [orders]);
 
-export default function TopSaleList() {
   return (
     <div className="bg-white rounded-[1.5rem] p-6 border border-gray-100 shadow-sm h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
@@ -24,7 +41,9 @@ export default function TopSaleList() {
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
-        {topProducts.map((product) => (
+        {topProducts.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-400 text-sm font-medium">No sales data yet</div>
+        ) : topProducts.map((product) => (
           <div key={product.id} className="flex items-center justify-between pb-4 border-b border-gray-50 last:border-0 last:pb-0">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0">

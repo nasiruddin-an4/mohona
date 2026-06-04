@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, Upload, Trash2, X, Save, Plus } from 'lucide-react';
-import ImageUploader from '../../../components/ImageUploader';
+import MultiImageUploader from '../../../components/MultiImageUploader';
 import { uploadToImageKit } from '@/lib/imagekit';
 import Swal from 'sweetalert2';
 
@@ -16,7 +16,7 @@ export default function EditProductPage() {
   const [isPublishMenuOpen, setIsPublishMenuOpen] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [pendingFile, setPendingFile] = useState(null);
+  const [pendingFiles, setPendingFiles] = useState([]);
 
   // New variant form state
   const [newVariant, setNewVariant] = useState({ variantType: 'Size', value: 'L' });
@@ -35,6 +35,7 @@ export default function EditProductPage() {
     variants: [],
     discounts: [],
     image_url: '',
+    product_images: [],
   });
 
   useEffect(() => {
@@ -69,6 +70,9 @@ export default function EditProductPage() {
           variants: data.data.variants || [],
           discounts: data.data.discounts || [],
           image_url: data.data.image_url || '',
+          product_images: data.data.product_images && data.data.product_images.length > 0 
+            ? data.data.product_images 
+            : (data.data.image_url ? [data.data.image_url] : []),
         });
       }
     } catch (error) {
@@ -153,11 +157,12 @@ export default function EditProductPage() {
   };
 
   // ── Media (Image Upload - deferred) ──
-  const handleFileSelect = (file) => {
-    setPendingFile(file);
-    if (!file) {
-      setFormData(prev => ({ ...prev, image_url: '' }));
-    }
+  const handleFilesSelect = (files) => {
+    setPendingFiles(files);
+  };
+
+  const handleUrlsChange = (urls) => {
+    setFormData(prev => ({ ...prev, product_images: urls }));
   };
 
   // ── Save ──
@@ -166,10 +171,14 @@ export default function EditProductPage() {
     try {
       // 1. Upload new image to ImageKit first if a file was selected
       let updatedData = { ...formData };
-      if (pendingFile) {
-        const imageUrl = await uploadToImageKit(pendingFile, '/products');
-        updatedData.image_url = imageUrl;
+      let newImageUrls = [];
+      if (pendingFiles.length > 0) {
+        newImageUrls = await Promise.all(pendingFiles.map(file => uploadToImageKit(file, '/products')));
       }
+
+      const allImages = [...updatedData.product_images, ...newImageUrls];
+      updatedData.product_images = allImages;
+      updatedData.image_url = allImages.length > 0 ? allImages[0] : '';
 
       // 2. Then save product data to DB
       const res = await fetch(`/api/products/${params.id}`, {
@@ -429,10 +438,11 @@ export default function EditProductPage() {
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.03)]">
           <h2 className="text-base font-bold text-gray-900 mb-6">Media</h2>
           
-          <ImageUploader
-            value={formData.image_url}
-            onFileSelect={handleFileSelect}
-            label="Product Image"
+          <MultiImageUploader
+            existingUrls={formData.product_images}
+            onFilesSelect={handleFilesSelect}
+            onUrlsChange={handleUrlsChange}
+            label="Product Images"
           />
         </div>
 

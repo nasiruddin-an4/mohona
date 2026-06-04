@@ -7,6 +7,11 @@ const ProductSchema = new mongoose.Schema(
       required: [true, 'Please provide a product name'],
       trim: true,
     },
+    slug: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     description: {
       type: String,
       default: '',

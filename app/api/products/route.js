@@ -34,6 +34,13 @@ export async function POST(request) {
     await connectDB();
     
     const body = await request.json();
+    
+    // Generate unique slug
+    if (body.name) {
+      const baseSlug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      body.slug = `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`;
+    }
+    
     const product = await Product.create(body);
     
     return NextResponse.json({ success: true, data: product }, { status: 201 });

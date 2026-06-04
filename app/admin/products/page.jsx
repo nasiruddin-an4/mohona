@@ -1,8 +1,59 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { Search, ChevronDown, Eye, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronDown, Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import Swal from 'sweetalert2';
+
+const FilterDropdown = ({ value, options, onChange, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  return (
+    <div className="relative" ref={ref}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between gap-2 bg-gray-50 border-none rounded-full px-5 py-2.5 text-sm font-medium text-gray-600 focus:outline-none cursor-pointer hover:bg-gray-100 transition-colors min-w-[130px]"
+      >
+        <span className="truncate">{value || placeholder}</span>
+        <ChevronDown size={14} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-xl rounded-xl z-50 overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-100">
+           <button 
+              onClick={() => { onChange(''); setIsOpen(false); }} 
+              className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between transition-colors ${!value ? 'text-[#0f8b80] font-bold bg-gray-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
+           >
+              {placeholder}
+              {!value && <Check size={14} className="text-[#0f8b80]" />}
+           </button>
+           {options.map(opt => {
+             const val = opt.value || opt;
+             const label = opt.label || opt;
+             return (
+               <button 
+                 key={val} 
+                 onClick={() => { onChange(val); setIsOpen(false); }} 
+                 className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between transition-colors ${val === value ? 'text-[#0f8b80] font-bold bg-gray-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
+               >
+                 {label}
+                 {val === value && <Check size={14} className="text-[#0f8b80]" />}
+               </button>
+             );
+           })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -32,14 +83,44 @@ export default function ProductsPage() {
   };
 
   const deleteProduct = async (id) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setProducts(products.filter(p => p._id !== id));
+        await Swal.fire({
+          title: 'Deleted!',
+          text: 'Product has been deleted.',
+          icon: 'success',
+          confirmButtonColor: '#0f8b80',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Failed to delete product',
+          confirmButtonColor: '#0f8b80',
+        });
       }
     } catch (error) {
       console.error('Failed to delete product', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Failed to delete product',
+        confirmButtonColor: '#0f8b80',
+      });
     }
   };
 
@@ -60,17 +141,17 @@ export default function ProductsPage() {
     <div className="container mx-auto bg-white rounded-2xl p-6 shadow-sm min-h-[calc(100vh-120px)] animate-in fade-in duration-500 flex flex-col">
       
       {/* Top Header Bar */}
-      <div className="flex items-center mb-4 border-b border-gray-200 pb-6">
+      <div className="flex flex-wrap lg:flex-nowrap items-center gap-4 mb-4 border-b border-gray-200 pb-6">
         {/* Left - Title */}
         <h1 className="text-xl font-bold text-gray-900 shrink-0">Product List</h1>
         
         {/* Middle - Search */}
-        <div className="flex-1 flex justify-center px-6">
-          <div className="relative w-full max-w-[320px]">
+        <div className="flex-1 flex w-full lg:w-auto lg:justify-center">
+          <div className="relative w-full max-w-[400px]">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input 
               type="text" 
-              placeholder="Search..." 
+              placeholder="Search products..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-none rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400"
@@ -79,39 +160,21 @@ export default function ProductsPage() {
         </div>
 
         {/* Right - Filters & Add */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="relative">
-            <select 
-              value={selectedCategory}
-              onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
-              className="appearance-none bg-gray-50 border-none rounded-full px-5 py-2.5 pr-10 text-sm font-medium text-gray-600 focus:outline-none cursor-pointer"
-            >
-              <option value="">Category</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Men">Men</option>
-              <option value="Women">Women</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Furniture">Furniture</option>
-              <option value="Home">Home</option>
-              <option value="Beauty">Beauty</option>
-              <option value="Sports">Sports</option>
-              <option value="Accessories">Accessories</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-          </div>
+        <div className="flex items-center gap-3 shrink-0 ml-auto">
           
-          <div className="relative">
-            <select 
-              value={selectedStatus}
-              onChange={(e) => { setSelectedStatus(e.target.value); setCurrentPage(1); }}
-              className="appearance-none bg-gray-50 border-none rounded-full px-5 py-2.5 pr-10 text-sm font-medium text-gray-600 focus:outline-none cursor-pointer"
-            >
-              <option value="">Status</option>
-              <option value="Publish">Publish</option>
-              <option value="Draft">Draft</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-          </div>
+          <FilterDropdown 
+            value={selectedCategory}
+            onChange={(val) => { setSelectedCategory(val); setCurrentPage(1); }}
+            placeholder="All Categories"
+            options={Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort()}
+          />
+
+          <FilterDropdown 
+            value={selectedStatus}
+            onChange={(val) => { setSelectedStatus(val); setCurrentPage(1); }}
+            placeholder="All Status"
+            options={['Publish', 'Draft']}
+          />
 
           <Link 
             href="/admin/products/add" 
@@ -159,11 +222,14 @@ export default function ProductsPage() {
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded bg-gray-50 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center p-1">
-                              {product.cover_image || product.image_url ? (
-                                <img src={product.cover_image || product.image_url} alt={product.name} className="w-full h-full object-contain" />
-                              ) : (
-                                <div className="w-full h-full bg-gray-200"></div>
-                              )}
+                              {(() => {
+                                const displayImage = (product.product_images?.length > 0 ? product.product_images[0] : null) || product.image_url || product.cover_image;
+                                return displayImage ? (
+                                  <img src={displayImage} alt={product.name} className="w-full h-full object-contain" />
+                                ) : (
+                                  <div className="w-full h-full bg-gray-200"></div>
+                                );
+                              })()}
                             </div>
                             <span className="font-medium text-gray-600">{product.name}</span>
                           </div>

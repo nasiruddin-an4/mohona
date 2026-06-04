@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, Trash2, X, Save, Plus } from 'lucide-react';
 import ImageUploader from '../../components/ImageUploader';
+import MultiImageUploader from '../../components/MultiImageUploader';
 import { uploadToImageKit } from '@/lib/imagekit';
 import Swal from 'sweetalert2';
 
@@ -19,7 +20,7 @@ export default function AddProductPage() {
 
   // Files pending upload
   const [pendingCoverFile, setPendingCoverFile] = useState(null);
-  const [pendingProductFile, setPendingProductFile] = useState(null);
+  const [pendingProductFiles, setPendingProductFiles] = useState([]);
   const [pendingVideoFile, setPendingVideoFile] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -37,7 +38,8 @@ export default function AddProductPage() {
     variants: [],
     discounts: [],
     cover_image: '',
-    image_url: '', // product photo
+    image_url: '', // product photo (legacy single)
+    product_images: [], // new multiple
     video_url: '',
   });
 
@@ -135,8 +137,10 @@ export default function AddProductPage() {
       if (pendingCoverFile) {
         updatedData.cover_image = await uploadToImageKit(pendingCoverFile, '/products/covers');
       }
-      if (pendingProductFile) {
-        updatedData.image_url = await uploadToImageKit(pendingProductFile, '/products');
+      if (pendingProductFiles.length > 0) {
+        const uploadedImages = await Promise.all(pendingProductFiles.map(f => uploadToImageKit(f, '/products')));
+        updatedData.product_images = [...updatedData.product_images, ...uploadedImages];
+        updatedData.image_url = updatedData.product_images.length > 0 ? updatedData.product_images[0] : '';
       }
       if (pendingVideoFile) {
         updatedData.video_url = await uploadToImageKit(pendingVideoFile, '/products/videos');
@@ -371,17 +375,17 @@ export default function AddProductPage() {
               helperText="Allowed *.jpeg, *.jpg, *.png, *.gif"
             />
             
-            <ImageUploader
-              value={formData.image_url}
-              onFileSelect={(file) => {
-                setPendingProductFile(file);
-                if (!file) setFormData(prev => ({ ...prev, image_url: '' }));
-              }}
-              label="Upload Product photo"
-              acceptType="image"
-              maxSizeMB={3.1}
-              helperText="Allowed *.jpeg, *.jpg, *.png, *.gif"
-            />
+            <div className="md:col-span-1 border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50">
+              <MultiImageUploader
+                existingUrls={formData.product_images}
+                onFilesSelect={(files) => setPendingProductFiles(files)}
+                onUrlsChange={(urls) => setFormData(prev => ({ ...prev, product_images: urls }))}
+                label="Product Images"
+                acceptType="image"
+                maxSizeMB={3.1}
+                helperText="Allowed *.jpeg, *.jpg, *.png. Multiple allowed."
+              />
+            </div>
 
             <ImageUploader
               value={formData.video_url}
@@ -606,7 +610,7 @@ export default function AddProductPage() {
                       type="text"
                       value={discount.price}
                       onChange={(e) => handleDiscountChange(index, 'price', e.target.value)}
-                      placeholder="e.g. $10 or 10%"
+                      placeholder="e.g. BDT 10 or 10%"
                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80]"
                     />
                   </div>

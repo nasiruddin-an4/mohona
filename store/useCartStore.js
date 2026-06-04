@@ -9,10 +9,14 @@ export const useCartStore = create(
       setShippingCost: (cost) => set({ shippingCost: cost }),
       addItem: (product, quantity = 1, demandDate = null) => {
         const currentItems = get().items;
-        const existingItem = currentItems.find((item) => item.product.product_id === product.product_id);
+        const getProductId = (p) => p._id || p.product_id || p.id;
+        const newProductId = getProductId(product);
+        
+        const existingItem = currentItems.find(
+          (item) => getProductId(item.product) === newProductId && item.product.selected_unit === product.selected_unit
+        );
 
         if (existingItem) {
-          // Check max order logic here if needed
           const newQuantity = Math.min(
             existingItem.quantity + quantity,
             product.max_order_qty || Infinity
@@ -20,31 +24,34 @@ export const useCartStore = create(
           
           set({
             items: currentItems.map((item) =>
-              item.product.product_id === product.product_id
+              getProductId(item.product) === newProductId && item.product.selected_unit === product.selected_unit
                 ? { ...item, quantity: newQuantity }
                 : item
             ),
           });
         } else {
-          // Check MOQ logic here if needed
           const initialQuantity = Math.max(quantity, product.moq || 1);
           set({ items: [...currentItems, { product, quantity: initialQuantity, demandDate }] });
         }
       },
-      removeItem: (productId) => {
+      removeItem: (productId, selectedUnit) => {
+        const getProductId = (p) => p._id || p.product_id || p.id;
         set({
-          items: get().items.filter((item) => item.product.product_id !== productId),
+          items: get().items.filter(
+            (item) => !(getProductId(item.product) === productId && item.product.selected_unit === selectedUnit)
+          ),
         });
       },
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (productId, selectedUnit, quantity) => {
+        const getProductId = (p) => p._id || p.product_id || p.id;
         if (quantity <= 0) {
-          get().removeItem(productId);
+          get().removeItem(productId, selectedUnit);
           return;
         }
         
         set({
           items: get().items.map((item) => {
-            if (item.product.product_id === productId) {
+            if (getProductId(item.product) === productId && item.product.selected_unit === selectedUnit) {
                const maxAllowed = item.product.max_order_qty || Infinity;
                const minAllowed = item.product.moq || 1;
                const safeQuantity = Math.max(minAllowed, Math.min(quantity, maxAllowed));
@@ -56,7 +63,7 @@ export const useCartStore = create(
       },
       clearCart: () => set({ items: [], shippingCost: 5 }),
       getCartTotal: () => {
-        return get().items.reduce((total, item) => total + item.product.unit_price * item.quantity, 0);
+        return get().items.reduce((total, item) => total + (item.product.unit_price || item.product.price || 0) * item.quantity, 0);
       },
     }),
     {

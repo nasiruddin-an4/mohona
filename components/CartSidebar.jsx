@@ -15,8 +15,7 @@ export default function CartSidebar({ isOpen, onClose }) {
   }, []);
 
   const subtotal = getCartTotal();
-  const shipping = items.length > 0 ? 5.00 : 0;
-  const total = subtotal + shipping;
+  const total = subtotal; // Shipping calculated during checkout
 
   const handleCheckout = () => {
     onClose();
@@ -37,7 +36,7 @@ export default function CartSidebar({ isOpen, onClose }) {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-[420px] bg-white shadow-2xl z-[101] transform transition-transform duration-500 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-[90%] sm:w-full max-w-[420px] bg-white shadow-2xl z-[101] transform transition-transform duration-500 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Close Button Inside */}
         <button
@@ -49,12 +48,12 @@ export default function CartSidebar({ isOpen, onClose }) {
 
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="px-8 pt-8 pb-4 flex-shrink-0">
+          <div className="px-6 sm:px-8 pt-8 pb-4 flex-shrink-0">
             <h2 className="text-[28px] font-serif text-gray-800 font-medium">Shopping cart</h2>
           </div>
 
           {/* Cart Items */}
-          <div className="flex-1 overflow-y-auto px-8 custom-scrollbar pb-8 min-h-0">
+          <div className="flex-1 overflow-y-auto px-6 sm:px-8 custom-scrollbar pb-8 min-h-0">
             {items.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-gray-500">
                 <p>Your cart is empty.</p>
@@ -62,7 +61,7 @@ export default function CartSidebar({ isOpen, onClose }) {
             ) : (
               <div className="flex flex-col space-y-6 mt-4">
                 {items.map((item) => (
-                  <div key={`${item.product.product_id}-${item.selected_unit}`} className="flex gap-4 items-start">
+                  <div key={`${item.product._id || item.product.product_id || item.product.id}-${item.product.selected_unit || 'default'}`} className="flex gap-4 items-start">
                     {/* Item Image */}
                     <div className="w-20 shrink-0">
                       <img
@@ -83,11 +82,11 @@ export default function CartSidebar({ isOpen, onClose }) {
                           <div className="flex items-center gap-2">
                             <span>Qty</span>
                             <div className="flex items-center bg-gray-50 rounded px-1.5 py-0.5 border border-gray-100">
-                              <button onClick={() => updateQuantity(item.product.product_id, item.quantity - 1)} className="text-gray-400 hover:text-black">
+                              <button onClick={() => updateQuantity(item.product._id || item.product.product_id || item.product.id, item.product.selected_unit, item.quantity - 1)} className="text-gray-400 hover:text-black">
                                 <Minus size={12} strokeWidth={3} />
                               </button>
                               <span className="w-5 text-center text-[11px] font-bold text-gray-900">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.product.product_id, item.quantity + 1)} className="text-gray-400 hover:text-black">
+                              <button onClick={() => updateQuantity(item.product._id || item.product.product_id || item.product.id, item.product.selected_unit, item.quantity + 1)} className="text-gray-400 hover:text-black">
                                 <Plus size={12} strokeWidth={3} />
                               </button>
                             </div>
@@ -95,7 +94,7 @@ export default function CartSidebar({ isOpen, onClose }) {
                         </div>
 
                         <div className="flex flex-col items-end gap-3 text-[11px] text-gray-400">
-                          <button onClick={() => removeItem(item.product.product_id, item.selected_unit)} className="flex items-center gap-2 hover:text-red-500 transition-colors">
+                          <button onClick={() => removeItem(item.product._id || item.product.product_id || item.product.id, item.product.selected_unit)} className="flex items-center gap-2 hover:text-red-500 transition-colors">
                             Remove <Trash2 size={12} />
                           </button>
                         </div>
@@ -108,7 +107,7 @@ export default function CartSidebar({ isOpen, onClose }) {
           </div>
 
           {/* Footer Summary */}
-          <div className="bg-[#f4f4f4] px-8 py-5 flex-shrink-0 flex flex-col gap-4">
+          <div className="bg-[#f4f4f4] px-6 sm:px-8 py-5 flex-shrink-0 flex flex-col gap-4">
             <div className="flex justify-between items-end">
               <span className="text-[18px] font-bold text-gray-800 ">Total</span>
               <span className="text-[28px] font-bold text-gray-800">৳{total.toFixed(2)}</span>

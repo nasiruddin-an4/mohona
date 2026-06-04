@@ -25,6 +25,7 @@ import {
 import CartSidebar from "../../components/CartSidebar";
 import categoriesData from "../../data/categories.json";
 import linksData from "../../data/links.json";
+import { useSiteSettings } from "../context/SiteSettingsContext";
 
 // Map icon names from JSON to lucide components
 const ICON_MAP = {
@@ -42,11 +43,29 @@ export default function Navbar() {
   const pathname = usePathname();
   const { items } = useCartStore();
   const { isCartOpen, openCart, closeCart } = useSidebarStore();
+  const { settings } = useSiteSettings();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
   const [mobileExpandedCat, setMobileExpandedCat] = useState(null);
   const [shopMenuOpen, setShopMenuOpen] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        if (data.success) {
+          const categories = new Set(data.data.map(p => p.category));
+          setAvailableCategories(Array.from(categories));
+        }
+      } catch (error) {
+        console.error("Error fetching available categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const categoryRef = useRef(null);
   const categoryTimeoutRef = useRef(null);
@@ -102,17 +121,17 @@ export default function Navbar() {
   return (
     <>
       {/* Topbar */}
-      <div className="bg-slate-900 py-3 hidden md:block">
+      <div className="bg-slate-900 py-3 ">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center text-xs">
           {/* Left: Contact Info */}
           <div className="flex items-center gap-6 text-gray-50 overflow-hidden">
-            <span className="font-medium tracking-wide">
-              Welcome to Mohona by CGFWA
+            <span className="font-medium tracking-wide hidden md:block">
+              Welcome to {settings?.storeName || 'Mohona by CGFWA'}
             </span>
             <div className="flex items-center gap-2">
               <Phone size={14} className="text-slate-300 fill-slate-300" />
               <span className="font-medium tracking-wide">
-                Call Us: 123 - 456 - 7890
+                Call Us: {settings?.phone || '01769-441085'}
               </span>
             </div>
           </div>
@@ -136,14 +155,14 @@ export default function Navbar() {
             <div className="flex items-center gap-8">
               {/* Logo */}
               <Link href="/" className="flex items-center gap-2 group mr-4">
-                <img src="/logoFinal.jpg" alt="Mohona by CGFWA" className="h-10 w-auto object-contain" />
+                <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-10 w-auto object-contain" />
               </Link>
 
               {/* Main Menu */}
               <div className="hidden lg:flex items-center gap-6 text-[15px] font-semibold text-gray-700">
 
                 {/* Shop with Dropdown */}
-                <div 
+                <div
                   className="relative py-2"
                   onMouseEnter={() => setShopMenuOpen(true)}
                   onMouseLeave={() => setShopMenuOpen(false)}
@@ -158,7 +177,9 @@ export default function Navbar() {
                   <div className={`absolute top-full left-0 mt-0 w-56 bg-white shadow-xl border border-gray-100 z-[60] grid transition-all duration-300 ease-in-out ${shopMenuOpen ? 'opacity-100 visible grid-rows-[1fr]' : 'opacity-0 invisible grid-rows-[0fr]'}`}>
                     <div className="overflow-hidden">
                       <div className="flex flex-col py-4">
-                        {linksData.shopDropdown.map((item, idx) => (
+                        {linksData.shopDropdown
+                          .filter(item => !availableCategories || availableCategories.includes(item.label))
+                          .map((item, idx) => (
                           <Link
                             key={idx}
                             href={item.href}
@@ -236,70 +257,110 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Backdrop */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 p-4 shadow-xl z-50 animate-in slide-in-from-top-2">
-            <div className="flex flex-col gap-1">
-              <Link
-                href="/"
-                className="font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/shop"
-                className="font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
-              >
-                Shop
-              </Link>
-
-              {/* Mobile Categories Accordion */}
-              <div>
-                <button
-                  onClick={() => setMobileExpandedCat(mobileExpandedCat ? null : "all")}
-                  className="w-full font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors flex items-center justify-between"
-                >
-                  <span>Categories</span>
-                  <ChevronDown
-                    size={16}
-                    className={`text-gray-400 transition-transform duration-300 ${mobileExpandedCat ? "rotate-180" : ""}`}
-                  />
-                </button>
-
-                {mobileExpandedCat && (
-                  <div className="ml-2 mt-1 space-y-0.5 border-l-2 border-gray-100 pl-3">
-                    {categories.map((cat) => {
-                      const IconComp = ICON_MAP[cat.icon];
-                      return (
-                        <Link
-                          key={cat.id}
-                          href={cat.href}
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center gap-3 py-2 px-2 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                        >
-                          <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center text-gray-500">
-                            {IconComp && <IconComp size={14} />}
-                          </div>
-                          {cat.name}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  openCart();
-                }}
-                className="font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors text-left"
-              >
-                View Cart
-              </button>
-            </div>
-          </div>
+          <div
+            className="md:hidden fixed inset-0 bg-black/50 z-[60] transition-opacity animate-in fade-in duration-300"
+            onClick={() => setIsMenuOpen(false)}
+          />
         )}
+
+        {/* Mobile Menu */}
+        <div className={`md:hidden fixed top-0 right-0 h-full w-[80%] bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          {/* Header with Close Button */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <Link href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2">
+              <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-8 w-auto object-contain" />
+            </Link>
+            <button
+              onClick={() => setIsMenuOpen(false)}
+              className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-1 p-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <Link
+              href="/"
+              onClick={() => setIsMenuOpen(false)}
+              className="font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
+            >
+              Home
+            </Link>
+
+            {/* Shop Accordion */}
+            <div>
+              <button
+                onClick={() => setMobileExpandedCat(mobileExpandedCat ? null : "all")}
+                className="w-full font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors flex items-center justify-between"
+              >
+                <span>Shop</span>
+                <ChevronDown
+                  size={16}
+                  className={`text-gray-400 transition-transform duration-300 ${mobileExpandedCat ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {mobileExpandedCat && (
+                <div className="ml-2 mt-1 space-y-0.5 border-l-2 border-gray-100 pl-3">
+                  {linksData.shopDropdown
+                    .filter(item => !availableCategories || availableCategories.includes(item.label))
+                    .map((item, idx) => (
+                    <Link
+                      key={idx}
+                      href={item.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center justify-between py-2 px-3 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                    >
+                      {item.label}
+                      {item.badge && (
+                        <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{item.badge}</span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link
+              href="/about"
+              onClick={() => setIsMenuOpen(false)}
+              className="font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
+            >
+              About Us
+            </Link>
+            <Link
+              href="/contact"
+              onClick={() => setIsMenuOpen(false)}
+              className="font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
+            >
+              Contact
+            </Link>
+          </div>
+
+          {/* Sidebar Footer Actions */}
+          <div className="p-4 border-t border-gray-100 flex flex-col gap-3">
+            {settings?.phone && (
+              <a
+                href={`tel:${settings.phone.replace(/[^0-9+]/g, '')}`}
+                className="w-full py-3 bg-gray-50 text-gray-800 text-center rounded-xl font-bold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+              >
+                <Phone size={16} />
+                {settings.phone}
+              </a>
+            )}
+            <Link
+              href="/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="w-full py-3 bg-black text-white text-center rounded-xl font-bold hover:bg-gray-800 transition-colors"
+            >
+              Log In / Register
+            </Link>
+
+
+          </div>
+        </div>
       </nav>
       <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
 

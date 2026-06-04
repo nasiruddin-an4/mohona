@@ -153,7 +153,7 @@ export default function ShopPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f18e6c]"></div>
         </div>
       ) : filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-10">
           {filteredProducts.map((product) => (
             <ProductCard key={product._id || product.product_id} product={product} />
           ))}

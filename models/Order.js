@@ -10,6 +10,7 @@ const OrderItemSchema = new mongoose.Schema({
 
 const OrderSchema = new mongoose.Schema(
   {
+    order_number: { type: String, unique: true, sparse: true },
     customer_name: { type: String, required: true },
     email: { type: String, required: true },
     contact_number: { type: String, required: true },
@@ -19,9 +20,15 @@ const OrderSchema = new mongoose.Schema(
     subtotal: { type: Number, required: true },
     shipping_cost: { type: Number, required: true },
     total_amount: { type: Number, required: true },
+    payment_status: { 
+      type: String, 
+      enum: ['Unpaid', 'Pending', 'Paid', 'Failed'],
+      default: 'Pending'
+    },
+    transaction_id: { type: String, default: null },
     status: { 
       type: String, 
-      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+      enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Returned', 'Refunded'],
       default: 'Pending'
     },
   },

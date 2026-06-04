@@ -6,6 +6,7 @@ import { useCartStore } from '../../store/useCartStore';
 import { useOrderStore } from '../../store/useOrderStore';
 import { ArrowLeft, CheckCircle2, ShieldCheck, Truck, HandCoins, CreditCard, User, Mail, Phone, MapPin, Package } from 'lucide-react';
 import Link from 'next/link';
+import Swal from 'sweetalert2';
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -21,7 +22,8 @@ export default function PaymentPage() {
     fullName: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    bkashTrxId: ''
   });
 
   useEffect(() => {
@@ -46,15 +48,16 @@ export default function PaymentPage() {
       const orderPayload = {
         customer_name: formData.fullName,
         email: formData.email,
-        contact_number: formData.contactNumber,
+        contact_number: formData.phone,
         address: formData.address,
         payment_method: paymentMethod === 'cod' ? 'Cash On Delivery' : paymentMethod === 'bkash' ? 'Bkash' : 'Other',
+        transaction_id: paymentMethod === 'bkash' ? formData.bkashTrxId : null,
         items: items.map(item => ({
-          product_id: item.product_id || item._id, // Handle both mock and real DB IDs just in case
-          name: item.name,
-          price: item.unit_price || item.price,
+          product_id: item.product._id || item.product.product_id || item.product.id,
+          name: item.product.name,
+          price: item.product.unit_price || item.product.price || 0,
           quantity: item.quantity,
-          image: item.image_url || (item.images ? item.images[0] : null)
+          image: item.product.image_url || (item.product.images ? item.product.images[0] : null)
         })),
         subtotal: subtotal,
         shipping_cost: shippingFee,
@@ -73,11 +76,21 @@ export default function PaymentPage() {
         clearCart();
         setOrderSuccess(data.data);
       } else {
-        alert('Failed to place order: ' + data.error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Order Failed',
+          text: data.error || 'Failed to place order',
+          confirmButtonColor: '#6B5CE7'
+        });
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred while placing the order.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'An error occurred while placing the order.',
+        confirmButtonColor: '#6B5CE7'
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -93,7 +106,7 @@ export default function PaymentPage() {
 
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-3">Order Confirmed!</h1>
           <p className="text-gray-500 font-medium mb-8 leading-relaxed">
-            Order <span className="font-bold text-gray-900">#{orderSuccess._id?.slice(-6).toUpperCase()}</span> placed via {orderSuccess.payment_method}.
+            Order <span className="font-bold text-gray-900">#{orderSuccess.order_number || orderSuccess._id?.slice(-6).toUpperCase()}</span> placed via {orderSuccess.payment_method}.
           </p>
 
           <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 mb-8 text-left space-y-3">
@@ -244,7 +257,7 @@ export default function PaymentPage() {
 
               <div className="space-y-3 mb-6">
                 {items.map((item) => (
-                  <div key={`${item.product.product_id}-${item.selected_unit}`} className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                  <div key={`${item.product._id || item.product.product_id || item.product.id}-${item.product.selected_unit || 'default'}`} className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
                     <div className="w-12 h-12 bg-gray-50 rounded-lg p-1.5 shrink-0 border border-gray-100">
                       <img src={item.product.image_url} alt="" className="w-full h-full object-contain" />
                     </div>
@@ -323,6 +336,36 @@ export default function PaymentPage() {
                 </div>
               </div>
 
+              {/* bKash Instructions & Inputs */}
+              {paymentMethod === 'bkash' && (
+                <div className="bg-pink-50/50 p-5 rounded-xl border border-pink-100 mt-2 mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[13px] text-gray-700 font-medium mb-4 leading-relaxed">
+                    Please send the total amount to our bKash Merchant Number: <span className="font-bold text-[#E2136E] text-[15px]">017XXXXXXXX</span>.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Transaction ID (TrxID) *</label>
+                      <input
+                        type="text"
+                        value={formData.bkashTrxId}
+                        onChange={(e) => setFormData({ ...formData, bkashTrxId: e.target.value })}
+                        required={paymentMethod === 'bkash'}
+                        placeholder="e.g., 9F8G7H6J"
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-[#E2136E]/20 focus:border-[#E2136E] transition-all outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Screenshot / Receipt *</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        required={paymentMethod === 'bkash'}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-[#E2136E]/20 focus:border-[#E2136E] transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-pink-50 file:text-[#E2136E] hover:file:bg-pink-100 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
 
