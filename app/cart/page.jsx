@@ -50,10 +50,10 @@ export default function CartPage() {
           {items.map((item) => (
             <div key={item.product.product_id} className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-8 border-b border-gray-100 last:border-0 last:pb-0">
               {/* Product Image */}
-              <div className="w-28 h-28 rounded-[1.5rem] overflow-hidden bg-gray-50 p-4 border border-gray-100 flex-shrink-0">
+              <div className="w-28 h-28 rounded-2xl overflow-hidden bg-gray-50 p-4 border border-gray-100 flex-shrink-0">
                 <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-contain" />
               </div>
-              
+
               {/* Product Details */}
               <div className="flex-1 min-w-0">
                 <span className="text-[10px] font-bold tracking-widest text-blue-500 uppercase bg-blue-50 px-2 py-1 rounded-md mb-2 inline-block">
@@ -61,11 +61,11 @@ export default function CartPage() {
                 </span>
                 <h3 className="text-xl font-bold text-gray-900 mb-1 truncate">{item.product.name}</h3>
                 <div className="text-gray-500 font-medium mb-3">৳ {item.product.unit_price} / {item.product.unit}</div>
-                
+
                 {/* Quantity Controls */}
                 <div className="flex items-center gap-2">
                   <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 p-1">
-                    <button 
+                    <button
                       onClick={() => updateQuantity(item.product.product_id, item.quantity - 1)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-gray-600 hover:text-gray-900 hover:shadow-sm transition-all"
                     >
@@ -74,15 +74,15 @@ export default function CartPage() {
                     <span className="w-12 text-center font-bold text-gray-900">
                       {item.quantity}
                     </span>
-                    <button 
+                    <button
                       onClick={() => updateQuantity(item.product.product_id, item.quantity + 1)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-gray-600 hover:text-gray-900 hover:shadow-sm transition-all"
                     >
                       <Plus size={16} />
                     </button>
                   </div>
-                  
-                  <button 
+
+                  <button
                     onClick={() => removeItem(item.product.product_id)}
                     className="p-2.5 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
                     title="Remove item"
@@ -121,8 +121,8 @@ export default function CartPage() {
               </div>
               <span className="text-3xl font-bold text-gray-900">৳ {subtotal.toLocaleString()}</span>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => router.push('/checkout')}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-blue-600/30 transform hover:-translate-y-1 active:scale-95 group text-lg"
             >

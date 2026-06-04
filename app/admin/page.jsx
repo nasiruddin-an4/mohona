@@ -36,10 +36,10 @@ export default function AdminDashboard() {
   const totalSales = orders
     .filter(o => o.payment_status?.toLowerCase() === 'paid')
     .reduce((sum, o) => sum + (o.total_amount || 0), 0);
-  
+
   const totalOrders = orders.length;
   const uniqueCustomers = new Set(orders.map(o => o.email || o.customer_name)).size;
-  
+
   // Calculate real delays (processing orders older than 3 days)
   const shippingDelays = orders.filter(o => {
     if (!o.createdAt || o.status === 'Delivered' || o.status === 'Cancelled' || o.status === 'Shipped') return false;
@@ -58,7 +58,7 @@ export default function AdminDashboard() {
     if (amount >= 1000) return (amount / 1000).toFixed(1) + 'k';
     return amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   };
-  
+
   const formatNumber = (num) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
@@ -67,56 +67,56 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
+
       {/* Top Stat Cards - 8 Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Top Row */}
-        <StatCard 
+        <StatCard
           title="Total Sales"
           value={formatMoney(totalSales)}
           textPrefix="৳"
           percentage={2.4} trend="up"
           bg="bg-[#d1f4eb]"
         />
-        <StatCard 
+        <StatCard
           title="Total Orders"
           value={formatNumber(totalOrders)}
           percentage={1.2} trend="up"
           bg="bg-[#fdf0bc]"
         />
-        <StatCard 
+        <StatCard
           title="Total Customers"
           value={formatNumber(uniqueCustomers)}
           percentage={3.1} trend="up"
           bg="bg-[#fedcc1]"
         />
-        <StatCard 
+        <StatCard
           title="Shipping Delays"
           value={formatNumber(shippingDelays)}
           percentage={0.1} trend="down"
           bg="bg-[#fde3f4]"
         />
-        
+
         {/* Bottom Row */}
-        <StatCard 
+        <StatCard
           title="Refund Requests"
           value={formatNumber(refundRequests)}
           percentage={0.4} trend="down"
           bg="bg-[#c3dafa]"
         />
-        <StatCard 
+        <StatCard
           title="Stock Products"
           value={formatNumber(stockProducts)}
           percentage={0.8} trend="up"
           bg="bg-[#fcd0a1]"
         />
-        <StatCard 
+        <StatCard
           title="Abandoned Carts"
           value={formatNumber(abandonedCarts)}
           percentage={0.0} trend="down"
           bg="bg-[#ccf2a6]"
         />
-        <StatCard 
+        <StatCard
           title="Payment Failures"
           value={formatNumber(paymentFailures)}
           percentage={0.2} trend="down"
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[400px]">
-        
+
         {/* Revenue Chart - takes up half space or more */}
         <div className="lg:col-span-6 xl:col-span-6 h-full">
           <RevenueChart orders={orders} />

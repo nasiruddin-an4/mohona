@@ -18,66 +18,66 @@ export default function RevenueChart({ orders = [] }) {
   const { chartData, totalRevenue, totalOrdered } = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthlyData = months.map(m => ({ name: m, revenue: 0, order: 0 }));
-    
+
     let totalRev = 0;
     let totalOrd = 0;
-    
+
     orders.forEach(order => {
       if (!order.createdAt) return;
       const date = new Date(order.createdAt);
-      
+
       // Filter for current year
       if (date.getFullYear() !== new Date().getFullYear()) return;
-      
+
       const monthIndex = date.getMonth();
       const amount = order.total_amount || 0;
-      
+
       // Total Ordered Value
       monthlyData[monthIndex].order += amount;
       totalOrd += amount;
-      
+
       // Paid Revenue
       if (order.payment_status === 'Paid') {
         monthlyData[monthIndex].revenue += amount;
         totalRev += amount;
       }
     });
-    
+
     return { chartData: monthlyData, totalRevenue: totalRev, totalOrdered: totalOrd };
   }, [orders]);
   return (
-    <div className="bg-white rounded-[1.5rem] p-6 border border-gray-100 shadow-sm h-full flex flex-col">
+    <div className="bg-white rounded-xl p-6 border border-gray-100 h-full flex flex-col">
       <div className="flex justify-between items-start mb-6">
         <div>
-           <h2 className="text-xl font-bold text-gray-900 mb-4">Revenue</h2>
-           <div className="flex gap-8">
-             <div>
-               <div className="flex items-center gap-2 mb-1">
-                 <div className="w-2 h-2 rounded-full bg-orange-400"></div>
-                 <span className="text-sm font-bold text-gray-500">Revenue</span>
-               </div>
-               <div className="flex items-center gap-3">
-                 <span className="text-2xl font-bold text-gray-900">BDT {totalRevenue.toLocaleString()}</span>
-                 <div className="flex items-center gap-1 text-xs font-bold text-green-500">
-                   <TrendingUp size={14} /> 0.00%
-                 </div>
-               </div>
-             </div>
-             <div>
-               <div className="flex items-center gap-2 mb-1">
-                 <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
-                 <span className="text-sm font-bold text-gray-500">Total Ordered</span>
-               </div>
-               <div className="flex items-center gap-3">
-                 <span className="text-2xl font-bold text-gray-900">BDT {totalOrdered.toLocaleString()}</span>
-                 <div className="flex items-center gap-1 text-xs font-bold text-green-500">
-                   <TrendingUp size={14} /> 0.00%
-                 </div>
-               </div>
-             </div>
-           </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Revenue</h2>
+          <div className="flex gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 rounded-full bg-orange-400"></div>
+                <span className="text-sm font-bold text-gray-500">Revenue</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-bold text-gray-900">BDT {totalRevenue.toLocaleString()}</span>
+                <div className="flex items-center gap-1 text-xs font-bold text-green-500">
+                  <TrendingUp size={14} /> 0.00%
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
+                <span className="text-sm font-bold text-gray-500">Total Ordered</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-bold text-gray-900">BDT {totalOrdered.toLocaleString()}</span>
+                <div className="flex items-center gap-1 text-xs font-bold text-green-500">
+                  <TrendingUp size={14} /> 0.00%
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        
+
         <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-50 transition-colors">
           Yearly
           <ChevronDown size={14} />
@@ -88,23 +88,23 @@ export default function RevenueChart({ orders = [] }) {
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-            <XAxis 
-               dataKey="name" 
-               axisLine={false} 
-               tickLine={false} 
-               tick={{ fontSize: 12, fill: '#9ca3af' }} 
-               dy={10}
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12, fill: '#9ca3af' }}
+              dy={10}
             />
-            <YAxis 
-               axisLine={false} 
-               tickLine={false} 
-               tick={{ fontSize: 12, fill: '#9ca3af' }}
-               dx={-10}
-               hide={true} // hidden in the screenshot but good to have if needed
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12, fill: '#9ca3af' }}
+              dx={-10}
+              hide={true} // hidden in the screenshot but good to have if needed
             />
-            <Tooltip 
-               cursor={{ fill: 'rgba(249, 250, 251, 0.5)' }}
-               contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+            <Tooltip
+              cursor={{ fill: 'rgba(249, 250, 251, 0.5)' }}
+              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
             />
             <Bar dataKey="revenue" fill="#fb923c" radius={[4, 4, 4, 4]} barSize={12} />
             <Line type="monotone" dataKey="order" stroke="#818cf8" strokeWidth={3} dot={false} />
