@@ -11,7 +11,7 @@ export default function StatCard({ title, value, percentage, trend, bg, textPref
       <span className="text-[13px] font-bold text-gray-800/70">{title}</span>
 
       <div className="flex justify-between items-end mt-auto">
-        <span className="text-[32px] font-black text-gray-900 tracking-tight leading-none">
+        <span className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight leading-none">
           {textPrefix}{value}
         </span>
 

@@ -22,7 +22,7 @@ const OrderSchema = new mongoose.Schema(
     total_amount: { type: Number, required: true },
     payment_status: { 
       type: String, 
-      enum: ['Unpaid', 'Pending', 'Paid', 'Failed'],
+      enum: ['Unpaid', 'Pending', 'Paid', 'Failed', 'Cancelled'],
       default: 'Pending'
     },
     transaction_id: { type: String, default: null },
@@ -31,6 +31,8 @@ const OrderSchema = new mongoose.Schema(
       enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Returned', 'Refunded'],
       default: 'Pending'
     },
+    tracking_number: { type: String, default: null },
+    courier_name: { type: String, default: null },
   },
   { timestamps: true }
 );

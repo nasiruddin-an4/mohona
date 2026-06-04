@@ -30,8 +30,20 @@ export async function PATCH(request, { params }) {
     
     // Only allow specific fields to be updated
     const updateData = {};
-    if (body.status) updateData.status = body.status;
-    if (body.payment_status) updateData.payment_status = body.payment_status;
+    if (body.status !== undefined) {
+      updateData.status = body.status;
+      if (body.status === 'Cancelled') {
+        updateData.payment_status = 'Cancelled';
+      }
+    }
+    
+    if (body.payment_status !== undefined) updateData.payment_status = body.payment_status;
+    if (body.items !== undefined) updateData.items = body.items;
+    if (body.subtotal !== undefined) updateData.subtotal = body.subtotal;
+    if (body.total_amount !== undefined) updateData.total_amount = body.total_amount;
+    if (body.shipping_cost !== undefined) updateData.shipping_cost = body.shipping_cost;
+    if (body.tracking_number !== undefined) updateData.tracking_number = body.tracking_number;
+    if (body.courier_name !== undefined) updateData.courier_name = body.courier_name;
 
     const updatedOrder = await Order.findOneAndUpdate(
       query,

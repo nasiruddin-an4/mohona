@@ -82,11 +82,7 @@ export default function Footer() {
                 <p className="text-gray-500 text-xs leading-relaxed mb-4 max-w-[200px]">
                   {feature.description}
                 </p>
-                {!feature.isSocial && (
-                  <Link href={feature.link} className="text-xs font-bold text-black border-b border-black pb-0.5 hover:text-[#2a2d96] hover:border-[#2a2d96] transition-colors">
-                    Learn More
-                  </Link>
-                )}
+
               </div>
             ))}
 

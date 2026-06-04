@@ -49,7 +49,7 @@ export default function AdminDashboard() {
 
   const refundRequests = orders.filter(o => o.status?.toLowerCase() === 'returned' || o.status?.toLowerCase() === 'refunded').length;
   const stockProducts = products.length;
-  const abandonedCarts = 0; // Requires cart sessions DB, 0 for now
+  const abandonedCarts = orders.filter(o => o.status?.toLowerCase() === 'cancelled' || o.payment_status?.toLowerCase() === 'failed').length;
   const paymentFailures = orders.filter(o => ['failed', 'declined'].includes(o.payment_status?.toLowerCase())).length;
 
   // Format large numbers

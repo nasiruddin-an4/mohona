@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Search, ChevronDown, Eye, Package, Download } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { Search, ChevronDown, Eye, Package, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function StockProductsPage() {
   const [products, setProducts] = useState([]);
@@ -72,7 +70,10 @@ export default function StockProductsPage() {
   const lowStockCount = products.filter(p => (p.stock_qty || 0) > 0 && (p.stock_qty || 0) < 10).length;
   const outOfStockCount = products.filter(p => (p.stock_qty || 0) === 0).length;
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    const { jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+
     const doc = new jsPDF();
     doc.text("Stock Products Report", 14, 15);
 

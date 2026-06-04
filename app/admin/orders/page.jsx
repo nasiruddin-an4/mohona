@@ -36,7 +36,7 @@ export default function OrdersPage() {
       const data = await res.json();
 
       if (data.success) {
-        setOrders(prevOrders => prevOrders.map(o => o._id === orderId ? { ...o, [field]: value } : o));
+        setOrders(prevOrders => prevOrders.map(o => o._id === orderId ? data.data : o));
         Swal.fire({
           icon: 'success',
           title: 'Updated',
@@ -89,6 +89,8 @@ export default function OrdersPage() {
       case 'paid': return 'border-emerald-500 text-emerald-600 bg-emerald-50';
       case 'pending': return 'border-amber-500 text-amber-600 bg-amber-50';
       case 'unpaid': return 'border-red-500 text-red-600 bg-red-50';
+      case 'failed': return 'border-red-500 text-red-600 bg-red-50';
+      case 'cancelled': return 'border-gray-500 text-gray-600 bg-gray-50';
       default: return 'border-amber-500 text-amber-600 bg-amber-50'; // Default pending
     }
   };
@@ -237,7 +239,7 @@ export default function OrdersPage() {
                         <td className="px-4 py-4 text-center">
                           <StatusDropdown 
                             value={order.payment_status || 'Pending'}
-                            options={['Unpaid', 'Pending', 'Paid', 'Failed']}
+                            options={['Unpaid', 'Pending', 'Paid', 'Failed', 'Cancelled']}
                             onChange={(val) => updateOrderStatus(order._id, 'payment_status', val)}
                             getStyle={getPStatusStyle}
                             roundedStyle="rounded-full"
