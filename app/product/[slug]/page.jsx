@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCartStore } from '../../../store/useCartStore';
 import { useSidebarStore } from '../../../store/useSidebarStore';
-import { ChevronRight, ChevronLeft, ShoppingCart, Copy, Store, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ShoppingCart, Copy, Store, ChevronDown, ChevronUp, Check, Star } from 'lucide-react';
 import Link from 'next/link';
 import ImageZoom from '../../../components/ImageZoom';
 
@@ -20,6 +20,14 @@ export default function ProductDetailsPage() {
   const [detailsExpanded, setDetailsExpanded] = useState(true);
   const [selectedUnit, setSelectedUnit] = useState('N/A');
   const [copied, setCopied] = useState(false);
+  const [reviews, setReviews] = useState([]);
+
+  // Review Form States
+  const [reviewName, setReviewName] = useState('');
+  const [reviewText, setReviewText] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
 
   const handleCopySku = () => {
     if (product) {
@@ -31,6 +39,40 @@ export default function ProductDetailsPage() {
     }
   };
 
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!product || !reviewName.trim() || !reviewText.trim() || !reviewRating) return;
+    
+    setSubmittingReview(true);
+    setReviewSuccess(false);
+
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: product._id,
+          user_name: reviewName,
+          review_text: reviewText,
+          rating: reviewRating,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setReviewSuccess(true);
+        setReviewName('');
+        setReviewText('');
+        setReviewRating(5);
+        setTimeout(() => setReviewSuccess(false), 5000);
+      }
+    } catch (error) {
+      console.error('Failed to submit review:', error);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -39,6 +81,15 @@ export default function ProductDetailsPage() {
         if (data.success) {
           setProduct(data.data);
           setSelectedUnit(data.data.available_units?.[0] || data.data.unit || 'N/A');
+          
+          // Fetch reviews
+          if (data.data._id) {
+            const reviewRes = await fetch(`/api/reviews?product_id=${data.data._id}`);
+            const reviewData = await reviewRes.json();
+            if (reviewData.success) {
+              setReviews(reviewData.data);
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to fetch product:', error);
@@ -226,8 +277,109 @@ export default function ProductDetailsPage() {
                 </div>
               )}
             </div>
+
           </div>
           
+        </div>
+      </div>
+
+      {/* Separated Product Reviews Section */}
+      <div className="mt-16 border-t border-gray-200 pt-10">
+        <h2 className="text-2xl font-bold text-gray-900 mb-8">
+          Customer Reviews {reviews.length > 0 && `(${reviews.length})`}
+        </h2>
+        
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Left: Reviews List */}
+          <div className="w-full lg:w-3/5">
+            {reviews.length > 0 ? (
+              <div className="space-y-6">
+                {reviews.map((review) => (
+                  <div key={review._id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="font-medium text-gray-900 text-[14px]">{review.user_name}</span>
+                      <span className="text-gray-400 text-[12px]">• {new Date(review.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1 mb-3">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star 
+                          key={star} 
+                          size={14} 
+                          className={star <= review.rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"} 
+                        />
+                      ))}
+                    </div>
+                    <p className="text-[14px] text-gray-700 leading-relaxed">{review.review_text}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-[14px] text-gray-500 italic p-6 bg-gray-50 rounded-xl">
+                No reviews yet. Be the first to review this product!
+              </div>
+            )}
+          </div>
+
+          {/* Right: Write Review Form */}
+          <div className="w-full lg:w-2/5">
+            <div className="bg-gray-50 p-6 sm:p-8 rounded-2xl">
+              <h3 className="text-[16px] font-bold text-gray-900 mb-6">Write a Review</h3>
+              {reviewSuccess && (
+                <div className="mb-6 p-4 bg-green-50 text-green-700 text-[14px] rounded-xl border border-green-100">
+                  Thank you! Your review has been submitted successfully.
+                </div>
+              )}
+              <form onSubmit={handleSubmitReview} className="flex flex-col gap-5">
+                <div>
+                  <label className="block text-[14px] font-medium text-gray-900 mb-2">Rating</label>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewRating(star)}
+                        className="focus:outline-none hover:scale-110 transition-transform"
+                      >
+                        <Star 
+                          size={24} 
+                          className={star <= reviewRating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[14px] font-medium text-gray-900 mb-2">Name</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={reviewName}
+                    onChange={(e) => setReviewName(e.target.value)}
+                    placeholder="Your name"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-[14px] focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[14px] font-medium text-gray-900 mb-2">Review</label>
+                  <textarea 
+                    required
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Write your review here..."
+                    rows="5"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-[14px] focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors resize-none"
+                  ></textarea>
+                </div>
+                <button 
+                  type="submit"
+                  disabled={submittingReview}
+                  className="bg-black hover:bg-gray-900 text-white font-bold py-3.5 rounded-xl text-[14px] transition-colors disabled:opacity-70 mt-2"
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>

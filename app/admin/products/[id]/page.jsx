@@ -69,11 +69,14 @@ export default function ProductDetailsPage() {
           
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="w-24 h-24 shrink-0 rounded-xl bg-gray-50 border border-gray-100 p-2 flex items-center justify-center overflow-hidden">
-              {product.cover_image || product.image_url ? (
-                <img src={product.cover_image || product.image_url} alt={product.name} className="w-full h-full object-contain" />
-              ) : (
-                <span className="text-xs text-gray-400">No Image</span>
-              )}
+              {(() => {
+                const displayImage = (product.product_images?.length > 0 ? product.product_images[0] : null) || product.image_url || product.cover_image;
+                return displayImage ? (
+                  <img src={displayImage} alt={product.name} className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-xs text-gray-400">No Image</span>
+                );
+              })()}
             </div>
             
             <div className="flex-1 min-w-0">
@@ -138,19 +141,20 @@ export default function ProductDetailsPage() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Media</h2>
           <div className="flex flex-wrap gap-4">
-            {product.image_url && (
-              <div className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-200 p-2 flex items-center justify-center overflow-hidden">
-                <img src={product.image_url} alt="Product" className="max-w-full max-h-full object-contain" />
-              </div>
-            )}
-            {product.product_images?.map((img, idx) => (
-              <div key={idx} className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-200 p-2 flex items-center justify-center overflow-hidden">
-                <img src={img} alt={`Product ${idx}`} className="max-w-full max-h-full object-contain" />
-              </div>
-            ))}
-            {!product.image_url && (!product.product_images || product.product_images.length === 0) && (
-              <p className="text-sm text-gray-400 italic">No additional media uploaded.</p>
-            )}
+            {(() => {
+              const allImages = [product.image_url, ...(product.product_images || [])].filter(Boolean);
+              const uniqueImages = [...new Set(allImages)];
+              
+              if (uniqueImages.length === 0) {
+                return <p className="text-sm text-gray-400 italic">No media uploaded.</p>;
+              }
+
+              return uniqueImages.map((img, idx) => (
+                <div key={idx} className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-200 p-2 flex items-center justify-center overflow-hidden">
+                  <img src={img} alt={`Product Media ${idx}`} className="max-w-full max-h-full object-contain" />
+                </div>
+              ));
+            })()}
           </div>
         </div>
 
