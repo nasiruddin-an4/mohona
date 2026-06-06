@@ -196,7 +196,7 @@ export default function OrdersPage() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto min-h-[400px] pb-32">
+        <div className="min-h-[400px] pb-32">
           {loading ? (
             <div className="flex justify-center items-center h-full min-h-[300px]">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0f8b80]"></div>
@@ -323,9 +323,18 @@ export default function OrdersPage() {
             </div>
 
             {/* SVG Lines */}
-            <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
+            <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1100 250">
+              <defs>
+                <style>{`
+                  @keyframes drawLine {
+                    from { stroke-dashoffset: 100; }
+                    to { stroke-dashoffset: 0; }
+                  }
+                `}</style>
+              </defs>
               {/* Earnings (Teal) */}
               <polyline
+                key={`earnings-${timeFilter}`}
                 points={currentChart.earnings}
                 fill="none"
                 stroke="#0f8b80"
@@ -333,10 +342,12 @@ export default function OrdersPage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
-                style={{ transition: 'all 0.5s ease-in-out' }}
+                pathLength="100"
+                style={{ strokeDasharray: 100, strokeDashoffset: 100, animation: 'drawLine 1s cubic-bezier(0.4, 0, 0.2, 1) forwards' }}
               />
               {/* Profits (Yellow) */}
               <polyline
+                key={`profits-${timeFilter}`}
                 points={currentChart.profits}
                 fill="none"
                 stroke="#f59e0b"
@@ -344,7 +355,8 @@ export default function OrdersPage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
-                style={{ transition: 'all 0.5s ease-in-out' }}
+                pathLength="100"
+                style={{ strokeDasharray: 100, strokeDashoffset: 100, animation: 'drawLine 1s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.2s' }}
               />
             </svg>
           </div>

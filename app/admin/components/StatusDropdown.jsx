@@ -20,7 +20,7 @@ export default function StatusDropdown({ value, options, onChange, getStyle, rou
   const currentStyle = getStyle(value) || 'bg-gray-100 text-gray-700 border-gray-200';
 
   return (
-    <div className={`relative inline-flex ${isOpen ? 'z-50' : 'z-0'}`} ref={dropdownRef}>
+    <div className={`relative inline-flex ${isOpen ? 'z-[9999]' : 'z-0'}`} ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -31,7 +31,7 @@ export default function StatusDropdown({ value, options, onChange, getStyle, rou
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 top-full left-1/2 -translate-x-1/2 w-36 rounded-xl bg-white shadow-xl border border-gray-100 focus:outline-none overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute z-[9999] mt-1 top-full left-1/2 -translate-x-1/2 w-36 rounded-xl bg-white shadow-xl border border-gray-100 focus:outline-none overflow-hidden animate-in fade-in zoom-in-95 duration-100">
           <div className="py-1">
             {options.map((option) => (
               <button
