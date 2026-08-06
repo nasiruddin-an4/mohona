@@ -1,6 +1,10 @@
 {
   "topbar": [
     {
+      "label": "Track Order",
+      "href": "/track-order"
+    },
+    {
       "label": "Blog",
       "href": "/blog"
     },
@@ -41,32 +45,32 @@
   ],
   "shopDropdown": [
     {
-      "label": "Summer",
-      "href": "/shop/summer"
+      "label": "All Categories",
+      "href": "/shop"
     },
     {
-      "label": "Women",
-      "href": "/shop/women"
-    },
-    {
-      "label": "Men",
-      "href": "/shop/men"
-    },
-    {
-      "label": "Teen",
-      "href": "/shop/teen"
-    },
-    {
-      "label": "Kids",
-      "href": "/shop/kids"
-    },
-    {
-      "label": "Nargisus",
-      "href": "/shop/nargisus"
+      "label": "Saree",
+      "href": "/shop/saree"
     },
     {
       "label": "Home Decor",
       "href": "/shop/home-decor"
+    },
+    {
+      "label": "Clothing & Accessories",
+      "href": "/shop/clothing-&-accessories"
+    },
+    {
+      "label": "Handicrafts & Pottery",
+      "href": "/shop/handicrafts-&-pottery"
+    },
+    {
+      "label": "Traditional Wear",
+      "href": "/shop/traditional-wear"
+    },
+    {
+      "label": "Lifestyle & Groceries",
+      "href": "/shop/lifestyle-&-groceries"
     }
   ],
   "footerAbout": [

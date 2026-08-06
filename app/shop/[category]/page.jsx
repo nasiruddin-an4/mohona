@@ -169,7 +169,7 @@ export default function CategoryPage({ params }) {
         <div className="py-32 text-center flex flex-col items-center justify-center border border-gray-100 bg-[#f4f4f4] rounded-sm">
           <Search size={32} className="text-gray-300 mb-4" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
-          <p className="text-sm text-gray-500 mb-6">We couldn't find any products in the {categoryName} category.</p>
+          <p className="text-sm text-gray-500 mb-6">We couldn&apos;t find any products in the {categoryName} category.</p>
           <button
             onClick={() => { setSearchQuery(''); setColorFilter('all'); setPriceFilter('all'); setSortBy('default'); }}
             className="text-[11px] font-bold text-white bg-black uppercase tracking-widest px-8 py-3 hover:bg-gray-800 transition-colors"

@@ -51,12 +51,19 @@ export default function Navbar() {
   const [shopMenuOpen, setShopMenuOpen] = useState(false);
   const [availableCategories, setAvailableCategories] = useState(null);
 
+  // Search State
+  const [allProducts, setAllProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef(null);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch('/api/products');
         const data = await response.json();
         if (data.success) {
+          setAllProducts(data.data.filter(p => (p.status || 'Publish') === 'Publish'));
           const categories = new Set(data.data.map(p => p.category));
           setAvailableCategories(Array.from(categories));
         }
@@ -90,6 +97,17 @@ export default function Navbar() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close search dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutsideSearch(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutsideSearch);
+    return () => document.removeEventListener("mousedown", handleClickOutsideSearch);
   }, []);
 
   // Close shop dropdown when navigating
@@ -178,7 +196,7 @@ export default function Navbar() {
                     <div className="overflow-hidden">
                       <div className="flex flex-col py-4">
                         {linksData.shopDropdown
-                          .filter(item => !availableCategories || availableCategories.includes(item.label))
+                          .filter(item => !availableCategories || item.label === 'All Categories' || availableCategories.includes(item.label))
                           .map((item, idx) => (
                           <Link
                             key={idx}
@@ -203,15 +221,73 @@ export default function Navbar() {
             </div>
 
             {/* Search - Central */}
-            <div className="hidden md:flex flex-1 max-w-2xl relative group mx-8">
+            <div className="hidden md:flex flex-1 max-w-2xl relative group mx-8" ref={searchRef}>
               <input
                 type="text"
                 placeholder="Search for products"
-                className="w-full bg-[#f3f4f6] border-none rounded-full py-2.5 pl-6 pr-12 text-sm font-medium transition-all outline-none text-gray-700 placeholder-gray-400"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsSearchFocused(true);
+                }}
+                onFocus={() => setIsSearchFocused(true)}
+                className="w-full bg-[#f3f4f6] border-none rounded-full py-2.5 pl-6 pr-12 text-sm font-medium transition-all outline-none text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-gray-200"
               />
               <button className="absolute inset-y-0 right-0 pr-4 flex items-center">
                 <Search size={18} className="text-gray-500" />
               </button>
+
+              {/* Search Suggestions Dropdown */}
+              {isSearchFocused && searchQuery.trim().length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[100] max-h-[400px] overflow-y-auto">
+                  {(() => {
+                    const query = searchQuery.toLowerCase().trim();
+                    const filtered = allProducts.filter(p => 
+                      p.name.toLowerCase().includes(query) || 
+                      p.category.toLowerCase().includes(query)
+                    ).slice(0, 5); // Show max 5 results
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="p-6 text-center text-gray-500 text-sm">
+                          No products found matching "{searchQuery}"
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="flex flex-col">
+                        {filtered.map(product => (
+                          <Link
+                            key={product._id || product.product_id}
+                            href={`/product/${product.slug || product._id}`}
+                            onClick={() => {
+                              setIsSearchFocused(false);
+                              setSearchQuery("");
+                            }}
+                            className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                          >
+                            <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                              <img 
+                                src={product.image_url || product.cover_image || (product.product_images?.[0])} 
+                                alt={product.name} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-sm font-bold text-gray-900 truncate">{product.name}</span>
+                              <span className="text-xs text-gray-500">{product.category}</span>
+                            </div>
+                            <div className="ml-auto text-sm font-bold text-gray-900 whitespace-nowrap">
+                              ৳{product.unit_price}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
 
             {/* Right Actions */}
@@ -236,15 +312,17 @@ export default function Navbar() {
                 )}
               </button>
 
-              {/* User Icon */}
-              <button
+              {/* User Icon (Track Order) */}
+              <Link
+                href="/track-order"
                 className="text-gray-800 hover:text-black transition-all relative flex items-center group"
+                title="Track Order"
               >
                 <User
                   size={20}
                   className="group-hover:scale-110 transition-transform"
                 />
-              </button>
+              </Link>
 
               {/* Mobile Menu Toggle */}
               <button
@@ -305,7 +383,7 @@ export default function Navbar() {
               {mobileExpandedCat && (
                 <div className="ml-2 mt-1 space-y-0.5 border-l-2 border-gray-100 pl-3">
                   {linksData.shopDropdown
-                    .filter(item => !availableCategories || availableCategories.includes(item.label))
+                    .filter(item => !availableCategories || item.label === 'All Categories' || availableCategories.includes(item.label))
                     .map((item, idx) => (
                     <Link
                       key={idx}
@@ -351,11 +429,11 @@ export default function Navbar() {
               </a>
             )}
             <Link
-              href="/login"
+              href="/track-order"
               onClick={() => setIsMenuOpen(false)}
               className="w-full py-3 bg-black text-white text-center rounded-xl font-bold hover:bg-gray-800 transition-colors"
             >
-              Log In / Register
+              Track My Order
             </Link>
 
 

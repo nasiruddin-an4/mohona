@@ -30,10 +30,6 @@ export default function ShopPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products', { cache: 'no-store' });
@@ -47,6 +43,10 @@ export default function ShopPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const allColors = Array.from(new Set(products.flatMap(p => p.colors || []))).sort();
 
