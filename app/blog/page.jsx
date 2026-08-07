@@ -53,7 +53,7 @@ export default function BlogPage() {
             <img
               src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop"
               alt="Blog Background"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain p-2"
             />
             <div className="absolute inset-0 bg-gradient-to-br from-[#7f6580]/90 via-[#49447b]/90 to-[#1f224b]/95"></div>
           </div>
@@ -80,7 +80,7 @@ export default function BlogPage() {
                     <img
                       src={post.image}
                       alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
                     />
 
                   </div>

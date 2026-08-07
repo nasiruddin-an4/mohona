@@ -76,9 +76,9 @@ export default function ImageUploader({
         /* ── Preview ── */
         <div className="relative w-40 h-40 rounded-2xl overflow-hidden border-2 border-gray-100 bg-gray-50 group shadow-sm">
           {acceptType === 'video' ? (
-            <video src={displayUrl} className="w-full h-full object-cover" controls />
+            <video src={displayUrl} className="w-full h-full object-contain p-2" controls />
           ) : (
-            <img src={displayUrl} alt="Preview" className="w-full h-full object-cover" />
+            <img src={displayUrl} alt="Preview" className="w-full h-full object-contain p-2" />
           )}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
             <button

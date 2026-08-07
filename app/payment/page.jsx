@@ -286,7 +286,7 @@ export default function PaymentPage() {
                 {items.map((item) => (
                   <div key={`${item.product._id || item.product.product_id || item.product.id}-${item.product.selected_unit || 'default'}`} className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
                     <div className="w-12 h-12 bg-gray-50 rounded-lg p-1.5 shrink-0 border border-gray-100">
-                      <img src={item.product.image_url} alt="" className="w-full h-full object-contain" />
+                      <img src={item.product.image_url} alt="" className="w-full h-full object-contain p-2" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 line-clamp-1">{item.product.name}</p>

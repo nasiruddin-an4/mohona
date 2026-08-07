@@ -339,7 +339,7 @@ export default function OrderDetailsPage() {
                         filteredProducts.map(p => (
                           <div key={p._id} className="flex items-center justify-between p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                             <div className="flex items-center gap-3">
-                              <img src={p.image_url || (p.product_images?.[0]) || 'https://via.placeholder.com/30'} className="w-8 h-8 rounded object-cover border border-gray-200" />
+                              <img src={p.image_url || (p.product_images?.[0]) || 'https://via.placeholder.com/30'} className="w-8 h-8 rounded object-contain p-2 border border-gray-200" />
                               <div>
                                 <div className="text-sm font-bold text-gray-900 line-clamp-1">{p.name}</div>
                                 <div className="text-xs font-medium text-gray-500">BDT {p.unit_price || p.price}</div>
@@ -371,7 +371,7 @@ export default function OrderDetailsPage() {
                       <tr key={idx} className="hover:bg-gray-50/30 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <img src={item.image || 'https://via.placeholder.com/40'} alt={item.name} className="w-10 h-10 rounded-lg object-cover border border-gray-100" />
+                            <img src={item.image || 'https://via.placeholder.com/40'} alt={item.name} className="w-10 h-10 rounded-lg object-contain p-2 border border-gray-100" />
                             <div>
                               <div className="font-bold text-gray-900">{item.name}</div>
                               <div className="text-[10px] text-gray-500 font-medium">ID: #{item.product_id?.slice(-5).toUpperCase() || 'N/A'}</div>

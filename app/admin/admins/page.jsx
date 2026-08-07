@@ -86,7 +86,7 @@ export default function AdminsPage() {
                 <tr key={admin.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <img src={admin.avatar} alt={admin.name} className="w-10 h-10 rounded-xl object-cover border border-gray-100 shadow-sm" />
+                      <img src={admin.avatar} alt={admin.name} className="w-10 h-10 rounded-xl object-contain p-2 border border-gray-100 shadow-sm" />
                       <div>
                         <div className="font-bold text-gray-900">{admin.name}</div>
                         <div className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-0.5">

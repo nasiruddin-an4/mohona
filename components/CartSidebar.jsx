@@ -67,7 +67,7 @@ export default function CartSidebar({ isOpen, onClose }) {
                       <img
                         src={item.product.image_url}
                         alt={item.product.name}
-                        className="w-full h-auto object-contain"
+                        className="w-full h-auto object-contain p-2"
                       />
                     </div>
 

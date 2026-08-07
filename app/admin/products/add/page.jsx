@@ -486,7 +486,7 @@ export default function AddProductPage() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="w-6 h-6 bg-gray-100 rounded">
-                          {variant.image && <img src={variant.image} className="w-full h-full object-contain" alt="Variant"/>}
+                          {variant.image && <img src={variant.image} className="w-full h-full object-contain p-2" alt="Variant"/>}
                         </div>
                       </td>
                       <td className="py-4 px-4">

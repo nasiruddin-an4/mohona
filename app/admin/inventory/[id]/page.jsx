@@ -74,7 +74,7 @@ export default function InventoryDetailsPage() {
         <div className="flex justify-between items-start mb-8">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center p-1 shrink-0 overflow-hidden">
-              <img src={productImg} alt={product.name} className="max-w-full max-h-full object-contain" />
+              <img src={productImg} alt={product.name} className="max-w-full max-h-full object-contain p-2" />
             </div>
             <div>
               <h3 className="font-bold text-gray-900 text-lg leading-tight">{product.name}</h3>

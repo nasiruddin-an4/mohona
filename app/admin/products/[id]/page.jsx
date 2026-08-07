@@ -72,7 +72,7 @@ export default function ProductDetailsPage() {
               {(() => {
                 const displayImage = (product.product_images?.length > 0 ? product.product_images[0] : null) || product.image_url || product.cover_image;
                 return displayImage ? (
-                  <img src={displayImage} alt={product.name} className="w-full h-full object-contain" />
+                  <img src={displayImage} alt={product.name} className="w-full h-full object-contain p-2" />
                 ) : (
                   <span className="text-xs text-gray-400">No Image</span>
                 );
@@ -151,7 +151,7 @@ export default function ProductDetailsPage() {
 
               return uniqueImages.map((img, idx) => (
                 <div key={idx} className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-200 p-2 flex items-center justify-center overflow-hidden">
-                  <img src={img} alt={`Product Media ${idx}`} className="max-w-full max-h-full object-contain" />
+                  <img src={img} alt={`Product Media ${idx}`} className="max-w-full max-h-full object-contain p-2" />
                 </div>
               ));
             })()}

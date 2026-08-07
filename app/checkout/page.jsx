@@ -58,7 +58,7 @@ export default function CartCheckoutPage() {
                     {/* Product Details */}
                     <div className="w-full sm:col-span-5 flex gap-4">
                       <div className="w-20 h-20 bg-gray-50 flex-shrink-0 flex items-center justify-center p-2 rounded-lg">
-                        <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                        <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-contain p-2 mix-blend-multiply" />
                       </div>
                       <div className="flex flex-col justify-center flex-1">
                         <span className="font-bold text-[14px] text-gray-800 mb-1">{item.product.name}</span>

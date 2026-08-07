@@ -229,7 +229,7 @@ export default function CustomersPage() {
                         <img 
                           src={`https://ui-avatars.com/api/?name=${encodeURIComponent(customer.name)}&background=random&color=fff&size=80`} 
                           alt={customer.name} 
-                          className="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-100" 
+                          className="w-10 h-10 rounded-full object-contain p-2 shadow-sm border border-gray-100" 
                         />
                         <div>
                           <div className="font-bold text-gray-900 flex items-center gap-2">

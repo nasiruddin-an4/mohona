@@ -25,7 +25,7 @@ export default function ImageZoom({ src, alt }) {
       <img
         src={src}
         alt={alt}
-        className="w-full h-full object-cover pointer-events-none"
+        className="w-full h-full object-contain p-2 pointer-events-none"
         style={{
           transform: isHovered ? 'scale(2.5)' : 'scale(1)',
           transformOrigin: `${position.x} ${position.y}`,

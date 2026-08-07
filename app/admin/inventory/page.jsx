@@ -147,7 +147,7 @@ export default function InventoryPage() {
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-gray-50">
-                              <img src={productImg} alt={product.name} className="w-full h-full object-cover" />
+                              <img src={productImg} alt={product.name} className="w-full h-full object-contain p-2" />
                             </div>
                             <span className="font-medium text-gray-700">{product.name}</span>
                           </div>

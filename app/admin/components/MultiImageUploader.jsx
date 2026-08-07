@@ -70,7 +70,7 @@ export default function MultiImageUploader({
         {/* Existing URLs */}
         {existingUrls.map((url, index) => (
           <div key={`exist-${index}`} className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 group">
-            <img src={url} className="w-full h-full object-cover" />
+            <img src={url} className="w-full h-full object-contain p-2" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <button type="button" onClick={() => removeExisting(index)} className="bg-white text-red-500 p-1.5 rounded-full hover:bg-gray-100 transition-colors shadow-lg pointer-events-auto"><X size={16}/></button>
             </div>
@@ -80,7 +80,7 @@ export default function MultiImageUploader({
         {/* Pending Files */}
         {pendingFiles.map((file, index) => (
           <div key={`pending-${index}`} className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-[#0f8b80] bg-[#e2f5f3] group">
-            <img src={URL.createObjectURL(file)} className="w-full h-full object-cover opacity-80" />
+            <img src={URL.createObjectURL(file)} className="w-full h-full object-contain p-2 opacity-80" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
               <button type="button" onClick={() => removePending(index)} className="bg-white text-red-500 p-1.5 rounded-full hover:bg-gray-100 transition-colors shadow-lg pointer-events-auto"><X size={16}/></button>
             </div>

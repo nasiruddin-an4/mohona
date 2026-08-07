@@ -295,7 +295,7 @@ export default function StockProductsPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center p-0.5 bg-white">
                               {product.cover_image || product.image_url ? (
-                                <img src={product.cover_image || product.image_url} alt={product.name} className="w-full h-full object-contain" />
+                                <img src={product.cover_image || product.image_url} alt={product.name} className="w-full h-full object-contain p-2" />
                               ) : (
                                 <div className="w-full h-full bg-gray-100"></div>
                               )}

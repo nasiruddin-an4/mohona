@@ -64,7 +64,7 @@ export default function AdminHeader({ toggleSidebar }) {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden ring-2 ring-transparent group-hover:ring-[#0f8b80]/20 transition-all">
-               <img src="https://i.pravatar.cc/150?img=11" alt="Profile" className="w-full h-full object-cover" />
+               <img src="https://i.pravatar.cc/150?img=11" alt="Profile" className="w-full h-full object-contain p-2" />
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-bold text-gray-900">Kristin Watson</p>

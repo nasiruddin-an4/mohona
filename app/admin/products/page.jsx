@@ -225,7 +225,7 @@ export default function ProductsPage() {
                               {(() => {
                                 const displayImage = (product.product_images?.length > 0 ? product.product_images[0] : null) || product.image_url || product.cover_image;
                                 return displayImage ? (
-                                  <img src={displayImage} alt={product.name} className="w-full h-full object-contain" />
+                                  <img src={displayImage} alt={product.name} className="w-full h-full object-contain p-2" />
                                 ) : (
                                   <div className="w-full h-full bg-gray-200"></div>
                                 );

@@ -17,7 +17,7 @@ export default function SupportPage() {
             <img
               src="https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=2069&auto=format&fit=crop"
               alt="Support Background"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain p-2"
             />
             <div className="absolute inset-0 bg-gradient-to-br from-[#7f6580]/90 via-[#49447b]/90 to-[#1f224b]/95"></div>
           </div>

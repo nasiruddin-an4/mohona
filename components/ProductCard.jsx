@@ -89,16 +89,16 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="flex flex-col group relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-3 h-full">
+    <div className="flex flex-col group relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full overflow-hidden">
       {/* Image Container */}
-      <Link href={`/product/${product.slug || product._id}`} className="relative aspect-square overflow-hidden bg-[#e5e7eb] rounded-xl mb-3 block">
+      <Link href={`/product/${product.slug || product._id}`} className="relative aspect-square overflow-hidden bg-[#e5e7eb] block">
         {(() => {
           const displayImage = (product.product_images?.length > 0 ? product.product_images[0] : null) || product.image_url || product.cover_image;
           return displayImage ? (
             <img
               src={displayImage}
               alt={product.name}
-              className={`object-cover w-full h-full transition-transform duration-700 group-hover:scale-105 mix-blend-multiply ${isOutOfStock ? "grayscale opacity-30" : ""}`}
+              className={`object-contain p-2 w-full h-full transition-transform duration-700 group-hover:scale-105 mix-blend-multiply ${isOutOfStock ? "grayscale opacity-30" : ""}`}
             />
           ) : (
             <div className={`w-full h-full flex items-center justify-center text-gray-400 text-xs ${isOutOfStock ? "opacity-30" : ""}`}>
@@ -123,7 +123,7 @@ export default function ProductCard({ product }) {
       </Link>
 
       {/* Content */}
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 p-3">
         <div className="text-[10px] text-gray-400 font-medium mb-1">Code: LSHR{String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}</div>
         <Link href={`/product/${product.slug || product._id}`}>
           <h3 className="text-[15px] font-medium text-gray-800 leading-snug mb-2 transition-colors line-clamp-1 hover:text-black">

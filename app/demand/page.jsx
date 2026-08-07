@@ -104,7 +104,7 @@ export default function DemandPage() {
             {demandProducts.map((product) => (
               <div key={product._id || product.id || product.product_id} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-6 hover:border-blue-200 transition-colors">
                 <div className="w-24 h-24 bg-gray-50 rounded-2xl p-4 shrink-0 overflow-hidden">
-                  <img src={product.cover_image || product.image_url || "/images/placeholder.jpg"} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                  <img src={product.cover_image || product.image_url || "/images/placeholder.jpg"} alt={product.name} className="w-full h-full object-contain p-2 mix-blend-multiply" />
                 </div>
                 <div className="flex-1">
                   <h4 className="font-bold text-lg text-gray-900 line-clamp-1">{product.name}</h4>

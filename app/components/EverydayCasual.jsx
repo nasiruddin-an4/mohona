@@ -67,15 +67,15 @@ export default function EverydayCasual({ products = [], loading = false }) {
               animate={{ opacity: 1, scaleY: 1 }}
               transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.1 }}
               style={{ originY: 0 }}
-              className="group border border-gray-100 p-3 flex flex-col bg-white hover:shadow-lg transition-shadow duration-300"
+              className="group border border-gray-100 flex flex-col bg-white hover:shadow-lg transition-shadow duration-300 overflow-hidden"
             >
               
               {/* Image Container */}
-              <Link href={`/product/${product.slug || product._id}`} className="relative aspect-[3/4] bg-gray-50 mb-4 overflow-hidden rounded-sm block">
+              <Link href={`/product/${product.slug || product._id}`} className="relative aspect-[3/4] bg-gray-50 overflow-hidden block">
                 <img 
                   src={(product.product_images?.length > 0 ? product.product_images[0] : null) || product.cover_image || product.image_url || "/images/placeholder.jpg"} 
                   alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 mix-blend-multiply"
+                  className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700 mix-blend-multiply"
                 />
                 
                 {/* Top Right Heart */}
@@ -108,7 +108,7 @@ export default function EverydayCasual({ products = [], loading = false }) {
               </Link>
 
               {/* Product Info */}
-              <div className="flex flex-col flex-1 pb-2 px-1">
+              <div className="flex flex-col flex-1 p-3">
                 {/* Title & Colors */}
                 <div className="flex justify-between items-start mb-1">
                   <div className="flex-1 min-w-0 pr-4">

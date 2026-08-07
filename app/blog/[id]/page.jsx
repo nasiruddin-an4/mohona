@@ -165,7 +165,7 @@ export default async function BlogDetails({ params }) {
               <img 
                 src={post.image} 
                 alt={post.title} 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-2"
               />
             </div>
 

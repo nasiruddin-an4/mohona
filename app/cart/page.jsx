@@ -51,7 +51,7 @@ export default function CartPage() {
             <div key={item.product.product_id} className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-8 border-b border-gray-100 last:border-0 last:pb-0">
               {/* Product Image */}
               <div className="w-28 h-28 rounded-2xl overflow-hidden bg-gray-50 p-4 border border-gray-100 flex-shrink-0">
-                <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-contain" />
+                <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-contain p-2" />
               </div>
 
               {/* Product Details */}

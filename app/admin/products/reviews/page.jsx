@@ -201,7 +201,7 @@ export default function ProductReviewsPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center p-0.5 bg-white">
                               {productImg ? (
-                                <img src={productImg} alt={review.product_id?.name || 'Product'} className="w-full h-full object-cover rounded-md" />
+                                <img src={productImg} alt={review.product_id?.name || 'Product'} className="w-full h-full object-contain p-2 rounded-md" />
                               ) : (
                                 <div className="w-full h-full bg-gray-100 rounded-md"></div>
                               )}
@@ -316,7 +316,7 @@ export default function ProductReviewsPage() {
                   {(() => {
                     const img = (selectedReview.product_id?.product_images?.length > 0 ? selectedReview.product_id.product_images[0] : null) || selectedReview.product_id?.image_url || selectedReview.product_id?.cover_image;
                     return img ? (
-                      <img src={img} alt={selectedReview.product_id?.name || 'Product'} className="w-full h-full object-cover rounded-lg" />
+                      <img src={img} alt={selectedReview.product_id?.name || 'Product'} className="w-full h-full object-contain p-2 rounded-lg" />
                     ) : (
                       <div className="w-full h-full bg-gray-100 rounded-lg"></div>
                     );

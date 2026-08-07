@@ -133,7 +133,7 @@ export default function TrackOrderPage() {
                           <div key={idx} className="flex items-center gap-4">
                             <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
                               {item.image ? (
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-400"><Package size={20} /></div>
                               )}

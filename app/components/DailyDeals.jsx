@@ -96,19 +96,19 @@ export default function DailyDeals({ products = [], loading = false }) {
           {dealProducts.map((product) => (
             <div 
               key={product._id || product.product_id}
-              className="min-w-[calc(100%/2)] sm:min-w-[calc((100%-16px)/3)] lg:min-w-[calc((100%-64px)/5)] bg-white border border-gray-100 rounded-2xl p-4 flex flex-col snap-start hover:shadow-lg transition-all duration-300"
+              className="min-w-[calc(100%/2)] sm:min-w-[calc((100%-16px)/3)] lg:min-w-[calc((100%-64px)/5)] bg-white border border-gray-100 rounded-2xl flex flex-col snap-start hover:shadow-lg transition-all duration-300 overflow-hidden"
             >
               {/* Product Image */}
-              <Link href={`/product/${product.slug || product._id || product.product_id}`} className="aspect-square mb-4 flex items-center justify-center overflow-hidden block">
+              <Link href={`/product/${product.slug || product._id || product.product_id}`} className="aspect-square flex items-center justify-center overflow-hidden block bg-[#e5e7eb]">
                  <img 
                   src={(product.product_images?.length > 0 ? product.product_images[0] : null) || product.cover_image || product.image_url || "/images/placeholder.jpg"} 
-                  className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-105" 
+                  className="w-full h-full object-contain p-2 mix-blend-multiply transition-transform duration-500 hover:scale-105" 
                   alt={product.name} 
                  />
               </Link>
 
               {/* Info */}
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 space-y-2 p-4">
                 <div className="flex flex-col">
                   <div className="text-[10px] text-gray-400 font-medium mb-1">Code: LSHR{String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}</div>
                   <Link href={`/product/${product.slug || product._id || product.product_id}`}>

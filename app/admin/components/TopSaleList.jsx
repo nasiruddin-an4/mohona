@@ -47,7 +47,7 @@ export default function TopSaleList({ orders = [] }) {
           <div key={product.id} className="flex items-center justify-between pb-4 border-b border-gray-50 last:border-0 last:pb-0">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0">
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{product.name}</h4>

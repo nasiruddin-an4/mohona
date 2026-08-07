@@ -173,7 +173,7 @@ export default function Navbar() {
             <div className="flex items-center gap-8">
               {/* Logo */}
               <Link href="/" className="flex items-center gap-2 group mr-4">
-                <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-10 w-auto object-contain" />
+                <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-10 w-auto object-contain p-2" />
               </Link>
 
               {/* Main Menu */}
@@ -271,7 +271,7 @@ export default function Navbar() {
                               <img 
                                 src={product.image_url || product.cover_image || (product.product_images?.[0])} 
                                 alt={product.name} 
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain p-2"
                               />
                             </div>
                             <div className="flex flex-col min-w-0">
@@ -348,7 +348,7 @@ export default function Navbar() {
           {/* Header with Close Button */}
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <Link href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2">
-              <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-8 w-auto object-contain" />
+              <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-8 w-auto object-contain p-2" />
             </Link>
             <button
               onClick={() => setIsMenuOpen(false)}
