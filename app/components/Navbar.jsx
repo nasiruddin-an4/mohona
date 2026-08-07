@@ -139,7 +139,7 @@ export default function Navbar() {
   return (
     <>
       {/* Topbar */}
-      <div className="bg-slate-900 py-3 ">
+      <div className="hidden md:block bg-slate-900 py-3 ">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center text-xs">
           {/* Left: Contact Info */}
           <div className="flex items-center gap-6 text-gray-50 overflow-hidden">
