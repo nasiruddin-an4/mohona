@@ -86,6 +86,9 @@ const ProductSchema = new mongoose.Schema(
     product_type: String,
     brand: String,
     seller: String,
+    fabric: { type: String, default: '' },
+    wash_care: { type: String, default: '' },
+    material: { type: String, default: '' },
   },
   { timestamps: true }
 );

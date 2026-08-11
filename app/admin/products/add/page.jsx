@@ -41,6 +41,9 @@ export default function AddProductPage() {
     image_url: '', // product photo (legacy single)
     product_images: [], // new multiple
     video_url: '',
+    fabric: '',
+    wash_care: '',
+    material: '',
   });
 
   // ── Generic Input Handler ──
@@ -341,6 +344,42 @@ export default function AddProductPage() {
                 value={formData.selling_price}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Fabric</label>
+              <input 
+                type="text" 
+                name="fabric"
+                value={formData.fabric}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+                placeholder="e.g. 100% Cotton"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Material</label>
+              <input 
+                type="text" 
+                name="material"
+                value={formData.material}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+                placeholder="e.g. Leather"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-[#0f8b80] uppercase tracking-wider">Wash Care</label>
+              <input 
+                type="text" 
+                name="wash_care"
+                value={formData.wash_care}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#0f8b80] transition-colors"
+                placeholder="e.g. Machine wash cold"
               />
             </div>
 

@@ -21,6 +21,7 @@ export default function ProductDetailsPage() {
   const [selectedUnit, setSelectedUnit] = useState('N/A');
   const [copied, setCopied] = useState(false);
   const [reviews, setReviews] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   // Review Form States
   const [reviewName, setReviewName] = useState('');
@@ -135,6 +136,10 @@ export default function ProductDetailsPage() {
   const formattedId = product._id.slice(-6);
   const displaySku = `LSHR${formattedId}`;
 
+  const displayImages = product.product_images?.length > 0 
+    ? product.product_images 
+    : (product.image_url ? [product.image_url] : []);
+
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Breadcrumbs & Back */}
@@ -158,16 +163,34 @@ export default function ProductDetailsPage() {
 
       <div className="flex flex-col lg:flex-row gap-10">
         {/* Left: Product Images */}
-        <div className="w-full lg:w-[65%] grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((idx) => (
-            <div key={idx} className="aspect-[3/4]">
-              <ImageZoom src={product.image_url} alt={`${product.name} view ${idx}`} />
+        <div className="w-full lg:w-[50%] flex flex-col md:flex-row gap-4">
+          {/* Thumbnails */}
+          {displayImages.length > 1 && (
+            <div className="flex md:flex-col gap-3 order-2 md:order-1 overflow-x-auto md:overflow-visible hide-scrollbar w-full md:w-20 shrink-0">
+              {displayImages.map((imgUrl, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setSelectedImage(idx)}
+                  className={`aspect-[3/4] flex-shrink-0 w-16 md:w-full border-2 overflow-hidden ${selectedImage === idx ? 'border-gray-900' : 'border-transparent hover:border-gray-300'} transition-colors`}
+                >
+                  <img src={imgUrl} alt={`${product.name} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
             </div>
-          ))}
+          )}
+          
+          {/* Main Image */}
+          <div className="order-1 md:order-2 flex-grow aspect-[4/5] md:aspect-auto md:h-[450px] lg:h-[500px] bg-gray-50 border border-gray-100 overflow-hidden relative">
+             {displayImages.length > 0 ? (
+               <ImageZoom src={displayImages[selectedImage] || displayImages[0]} alt={`${product.name} main view`} />
+             ) : (
+               <div className="flex items-center justify-center w-full h-full text-gray-400">No Image Available</div>
+             )}
+          </div>
         </div>
 
         {/* Right: Product Info */}
-        <div className="w-full lg:w-[35%] flex flex-col pt-2 pr-4 lg:pr-10">
+        <div className="w-full lg:w-[50%] flex flex-col pt-2 lg:pl-10 pr-4 lg:pr-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 leading-tight">
             {product.name}
           </h1>
@@ -208,24 +231,13 @@ export default function ProductDetailsPage() {
             </div>
           </div>
 
-          {/* Add to Cart */}
+          {/* Contact for Order */}
           <button
-            onClick={handleAddToCart}
+            onClick={() => router.push('/contact')}
             className="w-full bg-[#fde047] hover:bg-[#facc15] text-gray-900 font-medium py-3.5 transition-colors flex items-center justify-center gap-2 mb-8"
           >
-            <ShoppingCart size={18} />
-            Add to cart
+            Contact for order
           </button>
-
-          {/* Info Texts */}
-          <div className="space-y-4 mb-10">
-            <p className="text-[12px] text-gray-600 leading-relaxed pr-8">
-              Product colour may slightly vary, depending on your device's screen resolution.
-            </p>
-            <p className="text-[12px] text-gray-600">
-              Free shipping at ৳8000 purchase.
-            </p>
-          </div>
 
           {/* Accordions */}
           <div className="border-t border-gray-200">
@@ -240,7 +252,7 @@ export default function ProductDetailsPage() {
               </button>
               {infoExpanded && (
                 <div className="pb-4 text-[13px] text-gray-600 leading-relaxed">
-                  {product.description || 'Premium quality product designed for everyday elegance and comfort. Sourced from the best materials to ensure longevity and style.'}
+                  {product.description || 'No description available for this product.'}
                 </div>
               )}
             </div>
@@ -257,22 +269,36 @@ export default function ProductDetailsPage() {
               {detailsExpanded && (
                 <div className="pb-6 pt-2">
                   <div className="flex flex-col gap-3">
-                    <div className="flex items-start text-[13px]">
-                      <div className="w-24 text-gray-900 font-medium">Color</div>
-                      <div className="text-gray-600">{product.colors?.[0] || 'Gray'}</div>
-                    </div>
-                    <div className="flex items-start text-[13px]">
-                      <div className="w-24 text-gray-900 font-medium">Size</div>
-                      <div className="text-gray-600">{selectedUnit}</div>
-                    </div>
-                    <div className="flex items-start text-[13px]">
-                      <div className="w-24 text-gray-900 font-medium">Fabric</div>
-                      <div className="text-gray-600">Cotton</div>
-                    </div>
-                    <div className="flex items-start text-[13px]">
-                      <div className="w-24 text-gray-900 font-medium">Wash Care</div>
-                      <div className="text-gray-600">Wash separately in mild detergent</div>
-                    </div>
+                    {product.colors && product.colors.length > 0 && (
+                      <div className="flex items-start text-[13px]">
+                        <div className="w-24 text-gray-900 font-medium">Color</div>
+                        <div className="text-gray-600">{product.colors.join(', ')}</div>
+                      </div>
+                    )}
+                    {selectedUnit && selectedUnit !== 'N/A' && (
+                      <div className="flex items-start text-[13px]">
+                        <div className="w-24 text-gray-900 font-medium">Size</div>
+                        <div className="text-gray-600">{selectedUnit}</div>
+                      </div>
+                    )}
+                    {product.fabric && (
+                      <div className="flex items-start text-[13px]">
+                        <div className="w-24 text-gray-900 font-medium">Fabric</div>
+                        <div className="text-gray-600">{product.fabric}</div>
+                      </div>
+                    )}
+                    {product.wash_care && (
+                      <div className="flex items-start text-[13px]">
+                        <div className="w-24 text-gray-900 font-medium">Wash Care</div>
+                        <div className="text-gray-600">{product.wash_care}</div>
+                      </div>
+                    )}
+                    {product.material && (
+                      <div className="flex items-start text-[13px]">
+                        <div className="w-24 text-gray-900 font-medium">Material</div>
+                        <div className="text-gray-600">{product.material}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

@@ -293,9 +293,17 @@ export default function Navbar() {
             {/* Right Actions */}
             <div className="flex items-center gap-5">
 
+              <Link
+                href="/contact"
+                className="hidden md:flex bg-black hover:bg-gray-800 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-colors items-center gap-2"
+              >
+                <Phone size={16} />
+                Contact Us
+              </Link>
+
 
               {/* Cart Toggle Button */}
-              <button
+              {/* <button
                 onClick={openCart}
                 id="cart-trigger"
                 className="text-gray-800 hover:text-black transition-all relative flex items-center group"
@@ -310,10 +318,10 @@ export default function Navbar() {
                     {cartCount}
                   </span>
                 )}
-              </button>
+              </button> */}
 
               {/* User Icon (Track Order) */}
-              <Link
+              {/* <Link
                 href="/track-order"
                 className="text-gray-800 hover:text-black transition-all relative flex items-center group"
                 title="Track Order"
@@ -322,7 +330,7 @@ export default function Navbar() {
                   size={20}
                   className="group-hover:scale-110 transition-transform"
                 />
-              </Link>
+              </Link> */}
 
               {/* Mobile Menu Toggle */}
               <button
@@ -428,13 +436,13 @@ export default function Navbar() {
                 {settings.phone}
               </a>
             )}
-            <Link
+            {/* <Link
               href="/track-order"
               onClick={() => setIsMenuOpen(false)}
               className="w-full py-3 bg-black text-white text-center rounded-xl font-bold hover:bg-gray-800 transition-colors"
             >
               Track My Order
-            </Link>
+            </Link> */}
 
 
           </div>

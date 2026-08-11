@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Hero from "./components/Hero";
+import Categories from "./components/Categories";
 import CollectionBanners from "./components/CollectionBanners";
 import ExclusiveCollection from "./components/ExclusiveCollection";
 import PromoBanner from "./components/PromoBanner";
@@ -12,6 +13,7 @@ import ConfidenceBar from "./components/ConfidenceBar";
 import RecommendationCarousel from "./components/RecommendationCarousel";
 import MoreToDiscover from "./components/MoreToDiscover";
 import AboutSection from "./components/AboutSection";
+import Magazine from "./components/Magazine";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -39,14 +41,17 @@ export default function Home() {
       {/* Hero Section */}
       <Hero />
 
+      {/* Categories Section */}
+      <Categories />
+
       {/* Collection Banners */}
-      <CollectionBanners />
+      {/* <CollectionBanners /> */}
 
       {/* Exclusive Collection */}
       <ExclusiveCollection products={products} loading={loading} />
 
       {/* Promo Banner */}
-      <PromoBanner />
+      {/* <PromoBanner /> */}
 
       {/* Everyday Casual Section */}
       <EverydayCasual products={products} loading={loading} />
@@ -58,10 +63,13 @@ export default function Home() {
       {/* <DailyDeals products={products} loading={loading} /> */}
 
       {/* Featured Offers Section */}
-      <FeaturedOffers products={products} loading={loading} />
+      {/* <FeaturedOffers products={products} loading={loading} /> */}
 
       {/* You Might Also Like Carousel */}
       {/* <RecommendationCarousel products={products} loading={loading} /> */}
+
+      {/* Magazine Section */}
+      <Magazine />
 
     </div>
   );

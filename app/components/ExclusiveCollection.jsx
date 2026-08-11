@@ -33,7 +33,7 @@ export default function ExclusiveCollection({ products = [], loading = false }) 
             Exclusive Collection
           </h2>
           <p className="text-gray-500 text-sm max-w-md">
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+            Discover our premium, hand-picked selection of top-tier products curated exclusively for you.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -69,8 +69,9 @@ export default function ExclusiveCollection({ products = [], loading = false }) 
             swiper.params.navigation.nextEl = nextRef.current;
           }}
           breakpoints={{
-            768: { slidesPerView: 2 },
-            1024: { slidesPerView: 3 },
+            640: { slidesPerView: 2 },
+            768: { slidesPerView: 3 },
+            1024: { slidesPerView: 4 },
           }}
         >
           {displayProducts.map((product) => (
@@ -91,14 +92,13 @@ export default function ExclusiveCollection({ products = [], loading = false }) 
                       {product.discount_pct}% OFF
                     </div>
                   )}
-                  {/* Add To Cart Hover Button */}
+                  {/* View Details Hover Button */}
                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 translate-y-[150%] opacity-0 invisible group-hover:translate-y-0 group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20 w-[85%] max-w-[260px]">
-                    <button
-                      onClick={(e) => handleAddToCart(e, product)}
-                      className="w-full bg-slate-900 cursor-pointer text-white py-3 rounded-full text-[13px] font-bold hover:bg-slate-800 transition-colors shadow-lg tracking-wide uppercase"
+                    <span
+                      className="flex justify-center w-full bg-slate-900 cursor-pointer text-white py-3 rounded-full text-[13px] font-bold hover:bg-slate-800 transition-colors shadow-lg tracking-wide uppercase"
                     >
-                      Add To Cart
-                    </button>
+                      View Details
+                    </span>
                   </div>
                 </div>
 

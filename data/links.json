@@ -1,10 +1,6 @@
 {
   "topbar": [
     {
-      "label": "Track Order",
-      "href": "/track-order"
-    },
-    {
       "label": "Blog",
       "href": "/blog"
     },
