@@ -8,7 +8,7 @@ import Link from 'next/link';
 export default function CategoryPage({ params }) {
   // Use React.use to unwrap params Promise in Next.js 15+
   const resolvedParams = use(params);
-  const rawCategory = resolvedParams.category;
+  const rawCategory = decodeURIComponent(resolvedParams.category);
   
   // Format the category string from URL (e.g. "home-decor" -> "Home Decor")
   const categoryName = rawCategory

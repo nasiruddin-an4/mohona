@@ -1,12 +1,8 @@
 {
   "topbar": [
     {
-      "label": "Blog",
-      "href": "/blog"
-    },
-    {
-      "label": "Support",
-      "href": "/support"
+      "label": "Contact Us",
+      "href": "/contact"
     },
     {
       "label": "cgfwatreasurer@gmail.com",
@@ -45,46 +41,30 @@
       "href": "/shop"
     },
     {
-      "label": "Saree",
-      "href": "/shop/saree"
+      "label": "শাড়ি (Saree)",
+      "href": "/shop/শাড়ি (Saree)"
     },
     {
-      "label": "Home Decor",
-      "href": "/shop/home-decor"
+      "label": "পোশাক (Clothing)",
+      "href": "/shop/পোশাক (Clothing)"
     },
     {
-      "label": "Clothing & Accessories",
-      "href": "/shop/clothing-&-accessories"
+      "label": "হোম ডেকোর (Home Decor)",
+      "href": "/shop/হোম ডেকোর (Home Decor)"
     },
     {
-      "label": "Handicrafts & Pottery",
-      "href": "/shop/handicrafts-&-pottery"
+      "label": "হস্তশিল্প (Handicrafts)",
+      "href": "/shop/হস্তশিল্প (Handicrafts)"
     },
     {
-      "label": "Traditional Wear",
-      "href": "/shop/traditional-wear"
-    },
-    {
-      "label": "Lifestyle & Groceries",
-      "href": "/shop/lifestyle-&-groceries"
+      "label": "অন্যান্য (Others)",
+      "href": "/shop/অন্যান্য (Others)"
     }
   ],
   "footerAbout": [
     {
       "label": "About Mohona",
       "href": "/about"
-    },
-    {
-      "label": "Corporate Responsibility",
-      "href": "/corporate"
-    },
-    {
-      "label": "Careers",
-      "href": "/careers"
-    },
-    {
-      "label": "Investors",
-      "href": "/investors"
     },
     {
       "label": "Blog",
@@ -95,18 +75,6 @@
     {
       "label": "Customer Service",
       "href": "/support"
-    },
-    {
-      "label": "Find a Store",
-      "href": "/find-store"
-    },
-    {
-      "label": "Legal & Privacy",
-      "href": "/privacy"
-    },
-    {
-      "label": "Gift Cards",
-      "href": "/gift-cards"
     },
     {
       "label": "Contact Us",

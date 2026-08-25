@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   ShoppingBag,
   ShoppingCart,
+  PhoneCall,
   Star,
 } from "lucide-react";
 import Link from "next/link";
@@ -88,6 +89,8 @@ export default function ProductCard({ product }) {
     openCart();
   };
 
+  const whatsappText = encodeURIComponent(`Hi, I would like to buy this product:\n\n*Name:* ${product.name}\n*Code:* LSHR${String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}\n*Price:* ${priceRange}`);
+
   return (
     <div className="flex flex-col group relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full overflow-hidden">
       {/* Image Container */}
@@ -148,16 +151,15 @@ export default function ProductCard({ product }) {
           </div>
         </div>
 
-        <button 
-          onClick={(e) => {
-             e.preventDefault();
-             handleAddToCart();
-          }}
-          className="w-full bg-[#111827] text-white flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold hover:bg-black transition-colors"
+        <a 
+          href={`https://wa.me/8801769441085?text=${whatsappText}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full bg-[#25D366] text-white flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#128C7E] transition-colors mt-auto"
         >
-          <ShoppingCart size={16} />
-          Add to cart
-        </button>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          Buy via WhatsApp
+        </a>
       </div>
     </div>
   );

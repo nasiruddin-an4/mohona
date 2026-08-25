@@ -7,7 +7,7 @@ export default function Hero() {
   return (
     <div className="w-full flex flex-col">
       {/* Top Banner Section - Full Width Breakout */}
-      <section className="w-screen relative left-[50%] right-[50%] -ml-[50vw] -mr-[50vw] text-white pt-32 pb-12 md:pt-48 md:pb-16 flex flex-col items-center justify-end text-center px-4 overflow-hidden h-[80vh]">
+      <section className="w-screen relative left-[50%] right-[50%] -ml-[50vw] -mr-[50vw] text-white pt-32 pb-12 md:pt-48 md:pb-16 flex flex-col items-center justify-end text-center px-4 overflow-hidden h-[85vh]">
 
         {/* Background Video */}
         <video

@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronRight,
   Wheat,
   Beef,
   Carrot,
@@ -23,7 +24,6 @@ import {
   Phone,
 } from "lucide-react";
 import CartSidebar from "../../components/CartSidebar";
-import categoriesData from "../../data/categories.json";
 import linksData from "../../data/links.json";
 import { useSiteSettings } from "../context/SiteSettingsContext";
 
@@ -39,17 +39,24 @@ const ICON_MAP = {
   Sparkles,
 };
 
+const shopLocations = [
+  { id: 1, name: "Mohona Shop Dhaka", hasCategories: true },
+  { id: 2, name: "Mohona Exclusive Shop Chattogram", hasCategories: false },
+  { id: 3, name: "Super Shop Mohona Mongla", hasCategories: false },
+  { id: 4, name: "Mohona Exclusive Shop Bhola", hasCategories: false },
+  { id: 5, name: "Mohona Exclusive Shop Patuakhali", hasCategories: false }
+];
+
 export default function Navbar() {
   const pathname = usePathname();
   const { items } = useCartStore();
   const { isCartOpen, openCart, closeCart } = useSidebarStore();
   const { settings } = useSiteSettings();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(null);
   const [mobileExpandedCat, setMobileExpandedCat] = useState(null);
   const [shopMenuOpen, setShopMenuOpen] = useState(false);
   const [availableCategories, setAvailableCategories] = useState(null);
+  const [activeShopCategory, setActiveShopCategory] = useState(null);
 
   // Search State
   const [allProducts, setAllProducts] = useState([]);
@@ -78,27 +85,6 @@ export default function Navbar() {
   const categoryTimeoutRef = useRef(null);
   const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
-  const categories = categoriesData.categories;
-
-  // Set the first category as active when dropdown opens
-  useEffect(() => {
-    if (isCategoryOpen && categories.length > 0 && !activeCategory) {
-      setActiveCategory(categories[0].id);
-    }
-  }, [isCategoryOpen, categories, activeCategory]);
-
-  // Close category dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (categoryRef.current && !categoryRef.current.contains(event.target)) {
-        setIsCategoryOpen(false);
-        setActiveCategory(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   // Close search dropdown when clicking outside
   useEffect(() => {
     function handleClickOutsideSearch(event) {
@@ -121,20 +107,6 @@ export default function Navbar() {
       if (categoryTimeoutRef.current) clearTimeout(categoryTimeoutRef.current);
     };
   }, []);
-
-  const handleCategoryEnter = useCallback(() => {
-    if (categoryTimeoutRef.current) clearTimeout(categoryTimeoutRef.current);
-    setIsCategoryOpen(true);
-  }, []);
-
-  const handleCategoryLeave = useCallback(() => {
-    categoryTimeoutRef.current = setTimeout(() => {
-      setIsCategoryOpen(false);
-      setActiveCategory(null);
-    }, 200);
-  }, []);
-
-  const activeCat = categories.find((c) => c.id === activeCategory);
 
   return (
     <>
@@ -173,7 +145,7 @@ export default function Navbar() {
             <div className="flex items-center gap-8">
               {/* Logo */}
               <Link href="/" className="flex items-center gap-2 group mr-4">
-                <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-10 w-auto object-contain p-2" />
+                <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-16 w-auto object-contain py-1" />
               </Link>
 
               {/* Main Menu */}
@@ -192,26 +164,39 @@ export default function Navbar() {
                       className={`text-gray-500 transition-transform duration-300 ${shopMenuOpen ? 'rotate-180' : ''}`}
                     />
                   </Link>
-                  <div className={`absolute top-full left-0 mt-0 w-56 bg-white shadow-xl border border-gray-100 z-[60] grid transition-all duration-300 ease-in-out ${shopMenuOpen ? 'opacity-100 visible grid-rows-[1fr]' : 'opacity-0 invisible grid-rows-[0fr]'}`}>
-                    <div className="overflow-hidden">
-                      <div className="flex flex-col py-4">
-                        {linksData.shopDropdown
-                          .filter(item => !availableCategories || item.label === 'All Categories' || availableCategories.includes(item.label))
-                          .map((item, idx) => (
-                          <Link
-                            key={idx}
-                            href={item.href}
-                            onClick={() => setShopMenuOpen(false)}
-                            className="px-6 py-2 text-[14px] font-normal text-gray-600 hover:text-black transition-colors flex items-center justify-between"
-                          >
-                            {item.label}
-                            {item.badge && (
-                              <span className="text-[11px] font-bold text-orange-500 uppercase tracking-widest">{item.badge}</span>
+                  <div className={`absolute top-full left-0 mt-0 w-72 bg-white shadow-xl border border-gray-100 z-[60] transition-all duration-300 ease-in-out ${shopMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
+                    <div className="flex flex-col py-2">
+                        {shopLocations.map((loc) => (
+                          <div key={loc.id} className="relative group">
+                            <div className="px-6 py-2.5 text-[14px] font-normal text-gray-600 hover:bg-gray-50 hover:text-black transition-colors flex items-center justify-between cursor-pointer">
+                              {loc.name}
+                              {loc.hasCategories && <ChevronRight size={14} />}
+                            </div>
+                            {/* Submenu */}
+                            {loc.hasCategories && (
+                              <div className="absolute top-2 left-full ml-0 w-56 bg-white shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[70]">
+                                <div className="flex flex-col py-2">
+                                  {linksData.shopDropdown
+                                      .filter(item => !availableCategories || item.label === 'All Categories' || availableCategories.includes(item.label))
+                                      .map((item, idx) => (
+                                      <Link
+                                        key={idx}
+                                        href={item.href}
+                                        onClick={() => setShopMenuOpen(false)}
+                                        className="px-6 py-2 text-[14px] font-normal text-gray-600 hover:text-black transition-colors flex items-center justify-between"
+                                      >
+                                        {item.label}
+                                        {item.badge && (
+                                          <span className="text-[11px] font-bold text-orange-500 uppercase tracking-widest">{item.badge}</span>
+                                        )}
+                                      </Link>
+                                  ))}
+                                </div>
+                              </div>
                             )}
-                          </Link>
+                          </div>
                         ))}
                       </div>
-                    </div>
                   </div>
                 </div>
 
@@ -356,7 +341,7 @@ export default function Navbar() {
           {/* Header with Close Button */}
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <Link href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2">
-              <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-8 w-auto object-contain p-2" />
+              <img src="/logoFinal.jpg" alt={settings?.storeName || "Mohona by CGFWA"} className="h-12 w-auto object-contain py-1" />
             </Link>
             <button
               onClick={() => setIsMenuOpen(false)}
@@ -378,32 +363,50 @@ export default function Navbar() {
             {/* Shop Accordion */}
             <div>
               <button
-                onClick={() => setMobileExpandedCat(mobileExpandedCat ? null : "all")}
+                onClick={() => setMobileExpandedCat(mobileExpandedCat === "shop" ? null : "shop")}
                 className="w-full font-bold text-gray-700 py-2.5 px-3 rounded-xl hover:bg-gray-50 hover:text-black transition-colors flex items-center justify-between"
               >
                 <span>Shop</span>
                 <ChevronDown
                   size={16}
-                  className={`text-gray-400 transition-transform duration-300 ${mobileExpandedCat ? "rotate-180" : ""}`}
+                  className={`text-gray-400 transition-transform duration-300 ${mobileExpandedCat === "shop" ? "rotate-180" : ""}`}
                 />
               </button>
 
-              {mobileExpandedCat && (
-                <div className="ml-2 mt-1 space-y-0.5 border-l-2 border-gray-100 pl-3">
-                  {linksData.shopDropdown
-                    .filter(item => !availableCategories || item.label === 'All Categories' || availableCategories.includes(item.label))
-                    .map((item, idx) => (
-                    <Link
-                      key={idx}
-                      href={item.href}
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-between py-2 px-3 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                    >
-                      {item.label}
-                      {item.badge && (
-                        <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{item.badge}</span>
+              {mobileExpandedCat === "shop" && (
+                <div className="ml-2 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
+                  {shopLocations.map((loc) => (
+                    <div key={loc.id}>
+                      <button 
+                        onClick={() => loc.hasCategories && setActiveShopCategory(activeShopCategory === loc.id ? null : loc.id)}
+                        className={`w-full flex items-center justify-between py-2 px-3 rounded-lg text-[13px] font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${!loc.hasCategories ? 'cursor-default' : ''}`}
+                      >
+                        <span className="text-left leading-tight">{loc.name}</span>
+                        {loc.hasCategories && (
+                          <ChevronDown size={14} className={`text-gray-400 flex-shrink-0 transition-transform duration-300 ${activeShopCategory === loc.id ? "rotate-180" : ""}`} />
+                        )}
+                      </button>
+                      
+                      {loc.hasCategories && activeShopCategory === loc.id && (
+                        <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 pl-3 pb-2">
+                          {linksData.shopDropdown
+                            .filter(item => !availableCategories || item.label === 'All Categories' || availableCategories.includes(item.label))
+                            .map((item, idx) => (
+                            <Link
+                              key={idx}
+                              href={item.href}
+                              onClick={() => setIsMenuOpen(false)}
+                              className="flex items-center justify-between py-2 px-3 rounded-lg text-[13px] font-normal text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                            >
+                              {item.label}
+                              {item.badge && (
+                                <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{item.badge}</span>
+                              )}
+                            </Link>
+                          ))}
+                        </div>
                       )}
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}

@@ -4,14 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 
 const CATEGORIES = [
-  { id: 1, name: 'Clothing', image: '/catelogImg/119_Clothing_Section.png' },
-  { id: 2, name: 'Saree', image: '/catelogImg/109_Jamdani_Saree.png' },
-  { id: 3, name: 'Home Decor', image: '/catelogImg/89_Home_Decor_Section.png' },
-  { id: 4, name: 'Jewellery', image: '/catelogImg/114_Jewellery_Collection.png' },
-  { id: 5, name: 'Indoor Plants', image: '/catelogImg/123_Indoor_Plants_Section.png' },
-  { id: 6, name: 'Traditional', image: '/catelogImg/120_Traditional_Gents_Items.png' },
-  { id: 7, name: 'Handicrafts', image: '/catelogImg/104_Shitolpati_Handicraft.png' },
-  { id: 8, name: 'Womens Accessories', image: '/catelogImg/108_Saree_and_Womens_Accessories_Section.png' },
+  { id: 1, name: 'শাড়ি (Saree)', image: '/catelogImg/109_Jamdani_Saree.png' },
+  { id: 2, name: 'পোশাক (Clothing)', image: '/catelogImg/119_Clothing_Section.png' },
+  { id: 3, name: 'হোম ডেকোর (Home Decor)', image: '/catelogImg/89_Home_Decor_Section.png' },
+  { id: 4, name: 'হস্তশিল্প (Handicrafts)', image: '/catelogImg/104_Shitolpati_Handicraft.png' },
+  { id: 5, name: 'অন্যান্য (Others)', image: '/catelogImg/114_Jewellery_Collection.png' }
 ];
 
 export default function Categories() {
@@ -25,7 +22,7 @@ export default function Categories() {
           {CATEGORIES.map((cat) => (
             <Link
               key={cat.id}
-              href={`/shop?category=${encodeURIComponent(cat.name)}`}
+              href={`/shop/${cat.name}`}
               className="group relative w-full aspect-[4/5] bg-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 block"
             >
               {/* Image */}
