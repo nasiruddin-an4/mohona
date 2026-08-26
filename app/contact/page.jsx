@@ -30,7 +30,7 @@ export default async function ContactPage() {
             <img
               src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
               alt="Architecture Background"
-              className="w-full h-full object-contain p-2"
+              className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-br from-[#7f6580]/90 via-[#49447b]/90 to-[#1f224b]/95"></div>
           </div>
@@ -47,10 +47,39 @@ export default async function ContactPage() {
           </div>
         </div>
 
-        {/* Contact Information & Form Section */}
+        {/* Main Content Areas */}
         <div className="py-20 px-4 relative z-20">
           <div className="container mx-auto max-w-6xl">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16">
+
+            {/* Other Branches Section */}
+            <div className="mb-24 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Visit Our Other Showrooms</h2>
+                <p className="text-gray-500 text-lg max-w-2xl mx-auto">Find a Mohona exclusive shop near you to experience our premium collection in person.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { name: "Mohona Exclusive Shop Chattogram", address: "Chattogram, Bangladesh", color: "text-blue-600", bg: "bg-blue-50", hoverBorder: "hover:border-blue-200" },
+                  { name: "Super Shop Mohona Mongla", address: "Mongla, Bangladesh", color: "text-emerald-600", bg: "bg-emerald-50", hoverBorder: "hover:border-emerald-200" },
+                  { name: "Mohona Exclusive Shop Bhola", address: "Bhola, Bangladesh", color: "text-orange-600", bg: "bg-orange-50", hoverBorder: "hover:border-orange-200" },
+                  { name: "Mohona Exclusive Shop Patuakhali", address: "Patuakhali, Bangladesh", color: "text-purple-600", bg: "bg-purple-50", hoverBorder: "hover:border-purple-200" }
+                ].map((branch, idx) => (
+                  <div key={idx} className={`bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-gray-100 ${branch.hoverBorder} transition-all group duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgb(0,0,0,0.08)]`}>
+                    <div className={`w-14 h-14 ${branch.bg} rounded-2xl flex items-center justify-center ${branch.color} mb-6 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                      <Store size={24} strokeWidth={2} />
+                    </div>
+                    <h4 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-gray-700 transition-colors">{branch.name}</h4>
+                    <div className="flex items-start gap-2 mt-3 text-gray-500">
+                      <MapPin size={16} className="mt-0.5 shrink-0" />
+                      <p className="text-sm font-medium leading-relaxed">{branch.address}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
 
               {/* Left Column: Contact Cards */}
               <div className="lg:col-span-2 space-y-8 animate-in fade-in slide-in-from-left-8 duration-700 delay-100">
@@ -65,7 +94,7 @@ export default async function ContactPage() {
                         <MapPin size={24} strokeWidth={2} />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">Our Location</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-1">Main Store (Dhaka)</h3>
                         <p className="text-gray-600 font-medium leading-relaxed whitespace-pre-line">
                           {address}
                         </p>

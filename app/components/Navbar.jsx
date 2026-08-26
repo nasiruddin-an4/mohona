@@ -111,23 +111,25 @@ export default function Navbar() {
   return (
     <>
       {/* Topbar */}
-      <div className="hidden md:block bg-slate-900 py-3 ">
+      <div className="hidden md:block bg-slate-900 py-2.5 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center text-xs">
           {/* Left: Contact Info */}
-          <div className="flex items-center gap-6 text-gray-50 overflow-hidden">
-            <span className="font-medium tracking-wide hidden md:block">
-              Welcome to {settings?.storeName || 'Mohona by CGFWA'}
+          <div className="flex items-center gap-2 text-gray-50 shrink-0">
+            <Phone size={14} className="text-slate-300 fill-slate-300" />
+            <span className="font-medium tracking-wide">
+              Call Us: {settings?.phone || '01769-441085'}
             </span>
-            <div className="flex items-center gap-2">
-              <Phone size={14} className="text-slate-300 fill-slate-300" />
-              <span className="font-medium tracking-wide">
-                Call Us: {settings?.phone || '01769-441085'}
-              </span>
+          </div>
+
+          {/* Center: Marquee */}
+          <div className="flex-1 overflow-hidden mx-6">
+            <div className="inline-block animate-marquee-rtl text-amber-400 font-semibold tracking-wider whitespace-nowrap">
+              Welcome to {settings?.storeName || 'Mohona by CGFWA'} — Explore our exclusive collection of premium traditional clothing and beautiful handicrafts.
             </div>
           </div>
 
           {/* Right: Links */}
-          <div className="flex items-center gap-3 text-gray-50 font-medium">
+          <div className="flex items-center gap-3 text-gray-50 font-medium shrink-0">
             {linksData.topbar.map((link, index) => (
               <React.Fragment key={index}>
                 <Link href={link.href} className="hover:text-white transition-colors">{link.label}</Link>
@@ -474,6 +476,17 @@ export default function Navbar() {
             opacity: 1;
             transform: translateX(0);
           }
+        }
+        @keyframes marquee-rtl {
+          0% {
+            transform: translateX(100vw);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+        .animate-marquee-rtl {
+          animation: marquee-rtl 25s linear infinite;
         }
       `}</style>
     </>
