@@ -55,17 +55,17 @@ export default function ShopPage() {
     const matchesCategory = activeCategory === 'All' || product.category === activeCategory;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+
     let matchesPrice = true;
     if (priceFilter === 'under_50') matchesPrice = product.unit_price < 50;
     else if (priceFilter === '50_100') matchesPrice = product.unit_price >= 50 && product.unit_price <= 100;
     else if (priceFilter === 'over_100') matchesPrice = product.unit_price > 100;
-    
+
     let matchesColor = true;
     if (colorFilter !== 'all') {
-       matchesColor = product.colors && product.colors.includes(colorFilter);
+      matchesColor = product.colors && product.colors.includes(colorFilter);
     }
-    
+
     return matchesCategory && matchesSearch && matchesPrice && matchesColor;
   });
 
@@ -77,10 +77,10 @@ export default function ShopPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans">
-      
+
       {/* Top Navigation & Filters */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-8 mb-8 border-b border-gray-100 gap-6">
-        
+
         {/* Breadcrumb */}
         <div className="text-[13px] text-gray-500 flex items-center gap-2">
           <Link href="/" className="hover:text-black transition-colors">Home</Link>
@@ -92,10 +92,10 @@ export default function ShopPage() {
 
         {/* Minimalist Dropdowns */}
         <div className="flex items-center gap-8 text-[11px] font-bold text-gray-900 uppercase tracking-[0.15em] relative">
-          
+
           {/* Color Dropdown */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => setOpenDropdown(openDropdown === 'color' ? null : 'color')}
               className={`flex items-center gap-1.5 transition-opacity ${openDropdown === 'color' ? 'opacity-100 text-[#f18e6c]' : 'hover:opacity-70'}`}
             >
@@ -113,7 +113,7 @@ export default function ShopPage() {
 
           {/* Price Dropdown */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => setOpenDropdown(openDropdown === 'price' ? null : 'price')}
               className={`flex items-center gap-1.5 transition-opacity ${openDropdown === 'price' ? 'opacity-100 text-[#f18e6c]' : 'hover:opacity-70'}`}
             >
@@ -130,7 +130,7 @@ export default function ShopPage() {
 
           {/* Sort Dropdown */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
               className={`flex items-center gap-1.5 transition-opacity ${openDropdown === 'sort' ? 'opacity-100 text-[#f18e6c]' : 'hover:opacity-70'}`}
             >
@@ -153,7 +153,7 @@ export default function ShopPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f18e6c]"></div>
         </div>
       ) : filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
           {filteredProducts.map((product) => (
             <ProductCard key={product._id || product.product_id} product={product} />
           ))}

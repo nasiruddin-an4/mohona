@@ -92,7 +92,7 @@ export default function ProductCard({ product }) {
   const whatsappText = encodeURIComponent(`Hi, I would like to buy this product:\n\n*Name:* ${product.name}\n*Code:* LSHR${String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}\n*Price:* ${priceRange}`);
 
   return (
-    <div className="flex flex-col group relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full overflow-hidden">
+    <div className="flex flex-col group relative bg-white rounded-md transition-shadow border border-gray-200 h-full overflow-hidden">
       {/* Image Container */}
       <Link href={`/product/${product.slug || product._id}`} className="relative aspect-square overflow-hidden bg-[#e5e7eb] block">
         {(() => {
@@ -133,7 +133,7 @@ export default function ProductCard({ product }) {
             {product.name}
           </h3>
         </Link>
-        
+
         <div className="flex items-center flex-wrap gap-2 mb-4 mt-auto">
           <span className="text-[20px] font-black text-gray-900 leading-none">{priceRange}</span>
           {/* Mock Original Price if there's a discount */}
@@ -142,7 +142,7 @@ export default function ProductCard({ product }) {
               ৳{Math.round(safePrice / (1 - product.discount_pct / 100))}
             </span>
           )}
-          
+
           <div className="flex items-center gap-0.5 ml-auto mt-1 sm:mt-0">
             {[...Array(5)].map((_, i) => (
               <Star key={i} size={12} className="text-yellow-400 fill-yellow-400" />
@@ -151,13 +151,13 @@ export default function ProductCard({ product }) {
           </div>
         </div>
 
-        <a 
+        <a
           href={`https://wa.me/8801769441085?text=${whatsappText}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full bg-[#25D366] text-white flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#128C7E] transition-colors mt-auto"
+          className="w-full bg-[#25D366] text-white flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold hover:bg-brandColorHover transition-colors duration-500 mt-auto"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
           Buy via WhatsApp
         </a>
       </div>
