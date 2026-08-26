@@ -122,9 +122,10 @@ export default function Navbar() {
           </div>
 
           {/* Center: Marquee */}
-          <div className="flex-1 overflow-hidden mx-6">
-            <div className="inline-block animate-marquee-rtl text-amber-400 font-semibold tracking-wider whitespace-nowrap">
-              Welcome to {settings?.storeName || 'Mohona by CGFWA'} — Explore our exclusive collection of premium traditional clothing and beautiful handicrafts.
+          <div className="flex-1 overflow-hidden mx-6 relative flex items-center h-full">
+            <div className="animate-marquee-rtl flex whitespace-nowrap text-amber-400 font-semibold tracking-wider w-max">
+              <span className="mx-16">মোহনা শপ এই মুহূর্তে অনলাইনে অর্ডার নিচ্ছে না। আমাদের অফলাইন ডেলিভারি এই মুহূর্তে বন্ধ আছে। প্রোডাক্ট অর্ডার করতে হোয়াটসঅ্যাপ নম্বরে যোগাযোগ করুন।</span>
+              <span className="mx-16">মোহনা শপ এই মুহূর্তে অনলাইনে অর্ডার নিচ্ছে না। আমাদের অফলাইন ডেলিভারি এই মুহূর্তে বন্ধ আছে। প্রোডাক্ট অর্ডার করতে হোয়াটসঅ্যাপ নম্বরে যোগাযোগ করুন।</span>
             </div>
           </div>
 
@@ -479,14 +480,14 @@ export default function Navbar() {
         }
         @keyframes marquee-rtl {
           0% {
-            transform: translateX(100vw);
+            transform: translateX(0%);
           }
           100% {
-            transform: translateX(-100%);
+            transform: translateX(-50%);
           }
         }
         .animate-marquee-rtl {
-          animation: marquee-rtl 25s linear infinite;
+          animation: marquee-rtl 20s linear infinite;
         }
       `}</style>
     </>
