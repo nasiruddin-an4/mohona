@@ -36,7 +36,7 @@ export default function AboutPage() {
         </div>
 
         {/* About Our Business Section */}
-        <div className="py-20 px-4 bg-white">
+        <div className="py-20 px-4 bg-gray-50">
           <div className="container mx-auto max-w-4xl">
             <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">Our Core Values</h2>
 

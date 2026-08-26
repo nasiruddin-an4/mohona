@@ -18,7 +18,7 @@ import { SiteSettingsProvider } from "./context/SiteSettingsContext";
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="light" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${outfit.variable} antialiased min-h-screen flex flex-col bg-white font-sans overflow-x-hidden`}>
+      <body suppressHydrationWarning className={`${outfit.variable} antialiased min-h-screen flex flex-col bg-gray-50 font-sans overflow-x-hidden`}>
         <SiteSettingsProvider>
           <ClientLayoutWrapper>
             {children}

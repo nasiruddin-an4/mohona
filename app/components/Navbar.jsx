@@ -141,7 +141,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      <nav className="bg-gray-50 sticky top-0 z-50 py-4">
+      <nav className="bg-gray-50 sticky top-0 z-50 py-4 shadow-md">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             {/* Left Section: Logo & Menus */}
