@@ -3,7 +3,7 @@ import { jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'mohona-rbac-secret-change-in-production';
 
-export async function middleware(request) {
+export async function proxy(request) {
   const path = request.nextUrl.pathname;
 
   // Protect all /admin routes except /admin/login
