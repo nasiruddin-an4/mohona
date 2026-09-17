@@ -51,6 +51,7 @@ export default function Navbar() {
   const [shopMenuOpen, setShopMenuOpen] = useState(false);
   const [availableCategories, setAvailableCategories] = useState(null);
   const [outlets, setOutlets] = useState([]);
+  const [mobileActiveOutlet, setMobileActiveOutlet] = useState(null);
 
   // Search State
   const [allProducts, setAllProducts] = useState([]);
@@ -443,19 +444,17 @@ export default function Navbar() {
 
               {mobileExpandedCat === "shop" && (
                 <div className="ml-2 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
-                  {shopLocations.map((loc) => (
-                    <div key={loc.id}>
+                  {[...outlets].sort((a,b) => (a.slug || '').includes('dhaka') ? -1 : ((b.slug || '').includes('dhaka') ? 1 : 0)).map((loc) => (
+                    <div key={loc._id}>
                       <button 
-                        onClick={() => loc.hasCategories && setActiveShopCategory(activeShopCategory === loc.id ? null : loc.id)}
-                        className={`w-full flex items-center justify-between py-2 px-3 rounded-lg text-[13px] font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${!loc.hasCategories ? 'cursor-default' : ''}`}
+                        onClick={() => setMobileActiveOutlet(mobileActiveOutlet === loc._id ? null : loc._id)}
+                        className={`w-full flex items-center justify-between py-2 px-3 rounded-lg text-[13px] font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors`}
                       >
                         <span className="text-left leading-tight">{loc.name}</span>
-                        {loc.hasCategories && (
-                          <ChevronDown size={14} className={`text-gray-400 flex-shrink-0 transition-transform duration-300 ${activeShopCategory === loc.id ? "rotate-180" : ""}`} />
-                        )}
+                        <ChevronDown size={14} className={`text-gray-400 flex-shrink-0 transition-transform duration-300 ${mobileActiveOutlet === loc._id ? "rotate-180" : ""}`} />
                       </button>
                       
-                      {loc.hasCategories && activeShopCategory === loc.id && (
+                      {mobileActiveOutlet === loc._id && (
                         <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 pl-3 pb-2">
                           <Link
                             href={`/${loc.slug}/menu`}
