@@ -11,26 +11,25 @@ export async function GET(request, { params }) {
   const resolvedParams = await params;
   try {
     await connectDB();
-    const { id } = resolvedParams; // this is either OutletProduct._id, MasterProduct._id, or MasterProduct.slug
-    
-    // Default to 'dhaka' outlet for the public catalog
-    const outlet = await Outlet.findOne({ slug: 'mohona-shop-dhaka' });
+    const { slug: outletSlug, productSlug } = resolvedParams;
+
+    // Find the outlet by slug
+    const outlet = await Outlet.findOne({ slug: outletSlug });
     if (!outlet) {
       return NextResponse.json({ success: false, error: 'Outlet not found' }, { status: 404 });
     }
-    
-    const isMongoId = id.match(/^[0-9a-fA-F]{24}$/);
-    
+
+    const isMongoId = productSlug.match(/^[0-9a-fA-F]{24}$/);
+
     let product;
     if (isMongoId) {
-      // Could be OutletProduct ID or MasterProduct ID
-      product = await OutletProduct.findOne({ 
-        outletId: outlet._id, 
-        $or: [{ _id: id }, { productId: id }] 
+      product = await OutletProduct.findOne({
+        outletId: outlet._id,
+        $or: [{ _id: productSlug }, { productId: productSlug }]
       }).populate('productId').populate('categoryId');
     } else {
-      // It's a slug. We must find the MasterProduct first.
-      const masterProduct = await MasterProduct.findOne({ slug: id });
+      // It's a slug — find the MasterProduct first
+      const masterProduct = await MasterProduct.findOne({ slug: productSlug });
       if (masterProduct) {
         product = await OutletProduct.findOne({
           outletId: outlet._id,
@@ -38,14 +37,14 @@ export async function GET(request, { params }) {
         }).populate('productId').populate('categoryId');
       }
     }
-    
+
     if (!product) {
-      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Product not found in this outlet' }, { status: 404 });
     }
-    
+
     return NextResponse.json({ success: true, data: product });
   } catch (error) {
-    console.error('Error fetching product:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    console.error('Error fetching outlet product by slug:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

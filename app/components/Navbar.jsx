@@ -67,7 +67,7 @@ export default function Navbar() {
         const data = await response.json();
         if (data.success) {
           setAllProducts(data.data.filter(p => (p.status || 'Publish') === 'Publish'));
-          const categories = new Set(data.data.map(p => p.category));
+          const categories = new Set(data.data.map(p => p.categoryId?.name || p.category).filter(Boolean));
           setAvailableCategories(Array.from(categories));
         }
       } catch (error) {
@@ -117,10 +117,11 @@ export default function Navbar() {
   // Render the shared product-suggestions list used by both the desktop and mobile search bars
   const renderSearchResults = (onSelect) => {
     const query = searchQuery.toLowerCase().trim();
-    const filtered = allProducts.filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      p.category.toLowerCase().includes(query)
-    ).slice(0, 5); // Show max 5 results
+    const filtered = allProducts.filter(p => {
+      const pName = p.productId?.name || p.name || '';
+      const pCat = p.categoryId?.name || p.category || '';
+      return pName.toLowerCase().includes(query) || pCat.toLowerCase().includes(query);
+    }).slice(0, 5); // Show max 5 results
 
     if (filtered.length === 0) {
       return (
@@ -135,23 +136,23 @@ export default function Navbar() {
         {filtered.map(product => (
           <Link
             key={product._id || product.product_id}
-            href={`/product/${product.slug || product._id}`}
+            href={`/product/${product.productId?.slug || product.slug || product._id}`}
             onClick={onSelect}
             className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
           >
             <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
               <img
-                src={product.image_url || product.cover_image || (product.product_images?.[0])}
-                alt={product.name}
+                src={product.productId?.image_url || product.productId?.cover_image || product.image_url || product.cover_image || (product.product_images?.[0])}
+                alt={product.productId?.name || product.name}
                 className="w-full h-full object-contain p-2"
               />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-gray-900 truncate">{product.name}</span>
-              <span className="text-xs text-gray-500">{product.category}</span>
+              <span className="text-sm font-bold text-gray-900 truncate">{product.productId?.name || product.name}</span>
+              <span className="text-xs text-gray-500">{product.categoryId?.name || product.category}</span>
             </div>
             <div className="ml-auto text-sm font-bold text-gray-900 whitespace-nowrap">
-              ৳{product.unit_price}
+              ৳{product.price || product.unit_price}
             </div>
           </Link>
         ))}
@@ -227,11 +228,12 @@ export default function Navbar() {
                     </button>
                     <div className={`absolute top-full left-0 mt-0 w-72 bg-white shadow-xl border border-gray-100 z-[60] transition-all duration-300 ease-in-out ${shopMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
                       <div className="flex flex-col py-2">
-                        {outlets.map((loc) => (
+                        
+                        {[...outlets].sort((a,b) => (a.slug || '').includes('dhaka') ? -1 : ((b.slug || '').includes('dhaka') ? 1 : 0)).map((loc) => (
                           <div key={loc._id} className="relative group">
-                            <Link href={`/${loc.slug}`} onClick={() => { setShopMenuOpen(false); localStorage.setItem('selectedOutlet', loc.slug); }} className="px-6 py-2.5 text-[14px] font-normal text-gray-600 hover:bg-gray-50 hover:text-[#0f8b80] font-bold transition-colors flex items-center justify-between cursor-pointer block">
+                            <Link href={`/${loc.slug}`} onClick={() => { setShopMenuOpen(false); localStorage.setItem('selectedOutlet', loc.slug); }} className="px-6 py-2.5 text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#0f8b80] transition-colors flex items-center justify-between cursor-pointer block">
                               {loc.name}
-                              <ChevronRight size={14} />
+                              <ChevronRight size={14} className="text-gray-400" />
                             </Link>
                             {/* Submenu */}
                             <div className="absolute top-0 left-full ml-0 w-56 bg-white shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[70]">
@@ -239,23 +241,19 @@ export default function Navbar() {
                                 <Link
                                   href={`/${loc.slug}/menu`}
                                   onClick={() => { setShopMenuOpen(false); localStorage.setItem('selectedOutlet', loc.slug); }}
-                                  className="px-6 py-2 text-[14px] font-normal text-gray-600 hover:text-[#0f8b80] font-bold transition-colors flex items-center justify-between"
+                                  className="px-6 py-2.5 text-[14px] font-medium text-gray-700 hover:text-[#0f8b80] transition-colors flex items-center justify-between"
                                 >
                                   All Products
                                 </Link>
-                                {linksData.shopDropdown
-                                    .filter(item => item.label !== 'All Categories' && (!availableCategories || availableCategories.includes(item.label)))
-                                    .map((item, idx) => (
+                                {(availableCategories || [])
+                                    .map((catName, idx) => (
                                     <Link
                                       key={idx}
-                                      href={`/${loc.slug}/menu?category=${encodeURIComponent(item.label)}`}
+                                      href={`/${loc.slug}/menu?category=${encodeURIComponent(catName)}`}
                                       onClick={() => { setShopMenuOpen(false); localStorage.setItem('selectedOutlet', loc.slug); }}
-                                      className="px-6 py-2 text-[14px] font-normal text-gray-600 hover:text-[#0f8b80] font-bold transition-colors flex items-center justify-between"
+                                      className="px-6 py-2.5 text-[14px] font-medium text-gray-700 hover:text-[#0f8b80] transition-colors flex items-center justify-between"
                                     >
-                                      {item.label}
-                                      {item.badge && (
-                                        <span className="text-[11px] font-bold text-orange-500 uppercase tracking-widest">{item.badge}</span>
-                                      )}
+                                      {catName}
                                     </Link>
                                 ))}
                               </div>
@@ -459,19 +457,22 @@ export default function Navbar() {
                       
                       {loc.hasCategories && activeShopCategory === loc.id && (
                         <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 pl-3 pb-2">
-                          {linksData.shopDropdown
-                            .filter(item => !availableCategories || item.label === 'All Categories' || availableCategories.includes(item.label))
-                            .map((item, idx) => (
+                          <Link
+                            href={`/${loc.slug}/menu`}
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center justify-between py-2 px-3 rounded-lg text-[13px] font-normal text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                          >
+                            All Products
+                          </Link>
+                          {(availableCategories || [])
+                            .map((catName, idx) => (
                             <Link
                               key={idx}
-                              href={item.href}
+                              href={`/${loc.slug}/menu?category=${encodeURIComponent(catName)}`}
                               onClick={() => setIsMenuOpen(false)}
                               className="flex items-center justify-between py-2 px-3 rounded-lg text-[13px] font-normal text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                             >
-                              {item.label}
-                              {item.badge && (
-                                <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{item.badge}</span>
-                              )}
+                              {catName}
                             </Link>
                           ))}
                         </div>

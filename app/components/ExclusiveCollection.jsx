@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Star, Heart, Loader2 } from "lucide-react";
@@ -6,15 +6,34 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import 'swiper/css/navigation';
 
-export default function ExclusiveCollection({ products = [], loading = false, outletSlug = '' }) {
+export default function ExclusiveCollection() {
   const prevRef = useRef(null);
   const nextRef = useRef(null);
+  
+  const [displayProducts, setDisplayProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filter for featured products first, fallback to regular products if none featured
-  const featured = products.filter(p => p.featured);
-  const displayProducts = (featured.length > 0 ? featured : products).slice(0, 8);
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const response = await fetch('/api/featured-outlet-products');
+        const data = await response.json();
+        if (data.success) {
+          setDisplayProducts(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching featured products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
+
+  if (!loading && displayProducts.length === 0) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16 mb-12">
@@ -42,12 +61,12 @@ export default function ExclusiveCollection({ products = [], loading = false, ou
         <div className="flex items-center justify-center py-20">
           <Loader2 className="animate-spin text-[#2a2d96]" size={40} />
         </div>
-      ) : displayProducts.length > 0 ? (
+      ) : (
         <Swiper
           modules={[Navigation, Autoplay]}
           spaceBetween={24}
           slidesPerView={1}
-          loop={true}
+          loop={displayProducts.length > 4}
           autoplay={{
             delay: 3000,
             disableOnInteraction: false,
@@ -68,12 +87,12 @@ export default function ExclusiveCollection({ products = [], loading = false, ou
         >
           {displayProducts.map((product) => (
             <SwiperSlide key={product._id || product.id}>
-              <Link href={outletSlug ? `/${outletSlug}/product/${product.slug || product._id || product.id}` : `/product/${product.slug || product._id || product.id}`} className="flex flex-col group block">
+              <Link href={`/${product.outletSlug || 'dhaka'}/product/${product.productId?.slug || product.slug || product._id || product.id}`} className="flex flex-col group block">
                 {/* Image Container */}
                 <div className="relative bg-[#f4f5f7] rounded-2xl flex items-center justify-center aspect-square overflow-hidden">
                   <img
-                    src={(product.product_images?.length > 0 ? product.product_images[0] : null) || (product.cover_image && !product.cover_image.startsWith('/') && !product.cover_image.startsWith('http') ? `/images/${product.cover_image}` : product.cover_image) || product.image_url || "/images/placeholder.jpg"}
-                    alt={product.name}
+                    src={(product.productId?.product_images?.length > 0 ? product.productId.product_images[0] : null) || (product.product_images?.length > 0 ? product.product_images[0] : null) || (product.productId?.cover_image && !product.productId.cover_image.startsWith('/') && !product.productId.cover_image.startsWith('http') ? `/images/${product.productId.cover_image}` : product.productId?.cover_image) || (product.cover_image && !product.cover_image.startsWith('/') && !product.cover_image.startsWith('http') ? `/images/${product.cover_image}` : product.cover_image) || product.productId?.image_url || product.image_url || "/images/placeholder.jpg"}
+                    alt={product.productId?.name || product.name}
                     className="w-full h-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* Discount Badge */}
@@ -96,29 +115,33 @@ export default function ExclusiveCollection({ products = [], loading = false, ou
 
                 {/* Product Details */}
                 <div className="flex flex-col flex-grow mt-4 px-1">
-                  <div className="text-[10px] text-gray-400 font-medium mb-1">Code: LSHR{String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}</div>
+                  <div className="text-[10px] text-gray-400 font-medium mb-1">Code: LSHR{String(product.product_id || product.id || ((product.productId?._id || product._id) ? (product.productId?._id || product._id).toString().slice(-4) : '0000')).padStart(4, '0')}</div>
 
-                  <h3 className="text-[16px] font-bold text-slate-900 mb-2">
-                    {product.name}
-                  </h3>
+                  <h3 className="font-bold text-gray-900 text-[15px] mb-1 line-clamp-1 group-hover:text-[#2a2d96] transition-colors">{product.productId?.name || product.name}</h3>
 
-                  <div className="flex items-center mb-1">
-                    <span className="text-[#2a2d96] font-semibold text-[15px]">
-                      ৳{product.selling_price || product.unit_price}
-                    </span>
-                    {product.discount_pct > 0 && (
-                      <span className="text-gray-400 line-through text-xs ml-2 font-medium">
-                        ৳{product.unit_price}
-                      </span>
-                    )}
+                  <div className="flex items-center gap-1 mb-2">
+                    <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                    <span className="text-[12px] font-bold text-gray-700">4.9</span>
+                    <span className="text-[11px] text-gray-400 ml-1">(24)</span>
+                  </div>
+
+                  <div className="mt-auto flex items-end justify-between pt-2">
+                    <div className="flex flex-col">
+                      {product.discount_pct > 0 ? (
+                        <>
+                          <span className="text-[11px] text-gray-400 line-through mb-0.5">৳{product.price || product.unit_price}</span>
+                          <span className="font-extrabold text-[#2a2d96] text-lg leading-none">৳{product.price || product.selling_price || product.unit_price}</span>
+                        </>
+                      ) : (
+                        <span className="font-extrabold text-[#2a2d96] text-lg leading-none">৳{product.price || product.selling_price || product.unit_price}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>
             </SwiperSlide>
           ))}
         </Swiper>
-      ) : (
-        <div className="text-center py-20 text-gray-500">No exclusive products found.</div>
       )}
     </div>
   );

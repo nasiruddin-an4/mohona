@@ -17,7 +17,7 @@ export default function EverydayCasual({ products = [], loading = false }) {
     openCart();
   };
 
-  const availableCategories = Array.from(new Set(products.map(p => p.category))).filter(Boolean);
+  const availableCategories = Array.from(new Set(products.map(p => p.categoryId?.name || p.category))).filter(Boolean);
   const tabs = availableCategories.length > 0 ? availableCategories.slice(0, 4) : ['Women', 'Men', 'Kids', 'Teen'];
 
   useEffect(() => {
@@ -26,7 +26,11 @@ export default function EverydayCasual({ products = [], loading = false }) {
     }
   }, [products]);
 
-  const filteredProducts = products.filter(product => product.category === activeTab).slice(0, 4);
+  const filteredProducts = products.filter(product => (product.categoryId?.name || product.category) === activeTab).slice(0, 4);
+
+  if (!loading && filteredProducts.length === 0) {
+    return null;
+  }
 
   return (
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 font-sans">
@@ -58,7 +62,7 @@ export default function EverydayCasual({ products = [], loading = false }) {
         <div className="flex justify-center items-center py-20">
           <Loader2 className="animate-spin text-[#f18e6c]" size={40} />
         </div>
-      ) : filteredProducts.length > 0 ? (
+      ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product, index) => (
             <motion.div 
@@ -71,10 +75,10 @@ export default function EverydayCasual({ products = [], loading = false }) {
             >
               
               {/* Image Container */}
-              <Link href={`/product/${product.slug || product._id}`} className="relative aspect-[3/4] bg-gray-50 overflow-hidden block">
+              <Link href={`/product/${product.productId?.slug || product.slug || product._id}`} className="relative aspect-[3/4] bg-gray-50 overflow-hidden block">
                 <img 
-                  src={(product.product_images?.length > 0 ? product.product_images[0] : null) || product.cover_image || product.image_url || "/images/placeholder.jpg"} 
-                  alt={product.name}
+                  src={(product.productId?.product_images?.length > 0 ? product.productId.product_images[0] : null) || (product.product_images?.length > 0 ? product.product_images[0] : null) || product.productId?.cover_image || product.cover_image || product.productId?.image_url || product.image_url || "/images/placeholder.jpg"} 
+                  alt={product.productId?.name || product.name}
                   className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700 mix-blend-multiply"
                 />
                 
@@ -112,21 +116,19 @@ export default function EverydayCasual({ products = [], loading = false }) {
                 {/* Title & Colors */}
                 <div className="flex justify-between items-start mb-1">
                   <div className="flex-1 min-w-0 pr-4">
-                    <div className="text-[10px] text-gray-400 font-medium mb-0.5">Code: LSHR{String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}</div>
-                    <Link href={`/product/${product.slug || product._id}`}>
-                      <h3 className="font-bold text-gray-900 text-sm truncate pr-2 hover:text-[#f18e6c] transition-colors">{product.name}</h3>
+                    <div className="text-[10px] text-gray-400 font-medium mb-0.5">Code: LSHR{String(product.product_id || product.id || ((product.productId?._id || product._id) ? (product.productId?._id || product._id).toString().slice(-4) : '0000')).padStart(4, '0')}</div>
+                    <Link href={`/product/${product.productId?.slug || product.slug || product._id}`}>
+                      <h3 className="font-bold text-gray-900 text-sm truncate pr-2 hover:text-[#f18e6c] transition-colors">{product.productId?.name || product.name}</h3>
                     </Link>
                   </div>
                 </div>
-                
-                <p className="text-xs text-gray-500 mb-2 truncate">{product.category}</p>
-                
+                <p className="text-xs text-gray-500 mb-2 truncate">{product.categoryId?.name || product.category}</p>
                 {/* Pricing */}
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="font-bold text-gray-900 text-[15px]">৳{product.selling_price || product.unit_price}</span>
+                  <span className="font-bold text-gray-900 text-[15px]">৳{product.price || product.selling_price || product.unit_price}</span>
                   {product.discount_pct > 0 && (
                     <>
-                      <span className="text-xs text-gray-400 line-through">৳{product.unit_price}</span>
+                      <span className="text-xs text-gray-400 line-through">৳{product.price || product.unit_price}</span>
                       <span className="text-xs font-bold text-[#f18e6c]">{product.discount_pct}% OFF</span>
                     </>
                   )}
@@ -135,8 +137,6 @@ export default function EverydayCasual({ products = [], loading = false }) {
             </motion.div>
           ))}
         </div>
-      ) : (
-        <div className="text-center py-20 text-gray-500">No products found for this category.</div>
       )}
     </section>
   );

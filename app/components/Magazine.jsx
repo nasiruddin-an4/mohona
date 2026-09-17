@@ -2,48 +2,16 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-const INITIAL_BLOG_POSTS = [
-  {
-    id: 1,
-    title: 'Mohona Wins The Bangladesh Retail Awards For The Third Year In A Row',
-    admin: 'ADMIN',
-    description: 'At the 3rd edition of the Bangladesh Retail Awards...',
-    image: '/images/promo_slider_1.png',
-  },
-  {
-    id: 2,
-    title: 'Mohona KUET IV 2023: An Exhilarating Inter-University Debate Championship',
-    admin: 'ADMIN',
-    description: 'Mohona KUET IV 2023 was a battleground of disputes...',
-    image: '/images/promo_slider_2.png',
-  },
-  {
-    id: 3,
-    title: 'Kids Art Competition: Young Minds Express The Spirit Of Victory Powered By Mohona',
-    admin: 'ADMIN',
-    description: 'To mark Victory Day on December 14, Mohona organiz...',
-    image: '/images/kids-collection.png',
-  },
-  {
-    id: 4,
-    title: 'Pitha Utshob & Musical Night: A Community Celebration Of Culture And Togetherness Powered By Mohona',
-    admin: 'ADMIN',
-    description: 'On December 14, Mohona hosted a vibrant Pitha Utsh...',
-    image: '/images/promo_slider_3.png',
-  },
-];
-
-// Duplicate items to ensure there's enough content to scroll infinitely
-const BLOG_POSTS = [...INITIAL_BLOG_POSTS, ...INITIAL_BLOG_POSTS.map(p => ({ ...p, id: p.id + 10 }))];
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 export default function Magazine() {
   const scrollRef = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [journals, setJournals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const scroll = useCallback((direction) => {
-    if (scrollRef.current) {
+    if (scrollRef.current && journals.length > 0) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
       // Scroll by roughly the width of one card (plus gap)
       const cardWidth = clientWidth / 4;
@@ -65,13 +33,42 @@ export default function Magazine() {
 
       scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
     }
+  }, [journals.length]);
+
+  useEffect(() => {
+    const fetchJournals = async () => {
+      try {
+        const res = await fetch('/api/journals?public=true');
+        const data = await res.json();
+        if (data.success) {
+          setJournals(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch journals:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJournals();
   }, []);
 
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || journals.length <= 4) return;
     const interval = setInterval(() => scroll('right'), 3000);
     return () => clearInterval(interval);
-  }, [scroll, isPaused]);
+  }, [scroll, isPaused, journals.length]);
+
+  if (loading) {
+    return (
+      <section className="pt-8 bg-[#fdfdfd] relative flex justify-center py-20">
+        <Loader2 className="animate-spin text-gray-400" size={32} />
+      </section>
+    );
+  }
+
+  if (journals.length === 0) {
+    return null; // Don't show the section if there are no published journals
+  }
 
   return (
     <section
@@ -87,35 +84,39 @@ export default function Magazine() {
 
         <div className="relative">
           {/* Navigation Arrows */}
-          <button
-            onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-800 hover:text-black transition-all opacity-0 group-hover:opacity-100 -translate-x-5"
-          >
-            <ChevronLeft size={20} strokeWidth={3} />
-          </button>
+          {journals.length > 4 && (
+            <>
+              <button
+                onClick={() => scroll('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-800 hover:text-black transition-all opacity-0 group-hover:opacity-100 -translate-x-5"
+              >
+                <ChevronLeft size={20} strokeWidth={3} />
+              </button>
 
-          <button
-            onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-800 hover:text-black transition-all opacity-0 group-hover:opacity-100 translate-x-5"
-          >
-            <ChevronRight size={20} strokeWidth={3} />
-          </button>
+              <button
+                onClick={() => scroll('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-800 hover:text-black transition-all opacity-0 group-hover:opacity-100 translate-x-5"
+              >
+                <ChevronRight size={20} strokeWidth={3} />
+              </button>
+            </>
+          )}
 
           {/* Carousel Track */}
           <div
             ref={scrollRef}
-            className="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4"
+            className={`flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 ${journals.length <= 4 ? 'justify-center' : ''}`}
             style={{ scrollBehavior: 'smooth' }}
           >
-            {BLOG_POSTS.map((post) => (
+            {journals.map((post, index) => (
               <Link
-                key={post.id}
-                href={`/blog/${post.id}`}
+                key={post._id}
+                href={`/journals/${post.slug}`}
                 className="min-w-[calc(100%-32px)] sm:min-w-[calc((100%-16px)/2)] lg:min-w-[calc((100%-72px)/4)] group relative aspect-[4/5] bg-gray-200 overflow-hidden rounded-sm shadow-sm hover:shadow-lg transition-shadow duration-300 block snap-start shrink-0"
               >
                 {/* Background Image */}
                 <img
-                  src={post.image}
+                  src={post.image_url || '/images/placeholder.jpg'}
                   alt={post.title}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -126,14 +127,13 @@ export default function Magazine() {
                 {/* Text Content */}
                 <div className="absolute bottom-0 left-0 w-full p-5 flex flex-col justify-end text-white text-left">
                   <span className="text-xs font-bold mb-2 tracking-wider uppercase text-white/90">
-                    {post.admin}
+                    {post.author || 'ADMIN'}
                   </span>
                   <h3 className="text-[15px] md:text-base font-bold leading-snug mb-2 line-clamp-3">
                     {post.title}
                   </h3>
-                  <p className="text-xs md:text-sm text-gray-300 line-clamp-2 leading-relaxed">
-                    {post.description}
-                  </p>
+                  <div className="text-xs md:text-sm text-gray-300 line-clamp-2 leading-relaxed" 
+                       dangerouslySetInnerHTML={{ __html: post.content.replace(/<[^>]+>/g, '').substring(0, 100) + '...' }} />
                 </div>
               </Link>
             ))}

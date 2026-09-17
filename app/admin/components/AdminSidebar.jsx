@@ -88,7 +88,7 @@ const sidebarSections = [
     items: [
       { name: 'Outlets', icon: Building2, path: '/admin/outlets', superAdminOnly: true },
       { name: 'Users & Staff', icon: UserCog, path: '/admin/admins', superAdminOnly: true },
-      // { name: 'Customers', icon: Users, path: '/admin/customers' },
+      { name: 'Journals', icon: FileText, path: '/admin/journals', superAdminOnly: true },
     ]
   },
   {

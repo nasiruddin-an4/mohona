@@ -15,7 +15,7 @@ export async function GET(request) {
     const category = searchParams.get('category');
     
     // Default to 'dhaka' outlet for the public catalog
-    const outlet = await Outlet.findOne({ slug: 'dhaka' });
+    const outlet = await Outlet.findOne({ slug: 'mohona-shop-dhaka' });
     if (!outlet) {
       return NextResponse.json({ success: true, data: [] });
     }

@@ -48,7 +48,7 @@ export default function Home() {
       {/* <CollectionBanners /> */}
 
       {/* Exclusive Collection */}
-      <ExclusiveCollection products={products} loading={loading} />
+      <ExclusiveCollection />
 
       {/* Promo Banner */}
       {/* <PromoBanner /> */}

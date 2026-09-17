@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronRight, ChevronLeft, Copy, Store, ChevronDown, ChevronUp, Check, Star, Phone } from 'lucide-react';
 import Link from 'next/link';
-import ImageZoom from '../../../components/ImageZoom';
+import ImageZoom from '../../../../components/ImageZoom';
 
-export default function ProductDetailsPage() {
-  const { slug } = useParams();
+export default function OutletProductDetailsPage() {
+  const { outlet: outletSlug, slug } = useParams();
   const router = useRouter();
 
   const [product, setProduct] = useState(null);
@@ -73,7 +73,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/products/${slug}`);
+        const res = await fetch(`/api/public-outlets/${outletSlug}/products/${slug}`);
         const data = await res.json();
         if (data.success) {
           setProduct(data.data);
@@ -94,8 +94,8 @@ export default function ProductDetailsPage() {
         setLoading(false);
       }
     };
-    if (slug) fetchProduct();
-  }, [slug]);
+    if (slug && outletSlug) fetchProduct();
+  }, [slug, outletSlug]);
 
   if (loading) {
     return (
@@ -110,7 +110,7 @@ export default function ProductDetailsPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h2>
         <button 
-          onClick={() => router.push('/shop')}
+          onClick={() => router.push(`/${outletSlug}`)}
           className="bg-black text-white px-6 py-2 rounded-xl font-bold"
         >
           Back to Shop
@@ -118,8 +118,6 @@ export default function ProductDetailsPage() {
       </div>
     );
   }
-
-  // Add to cart removed for digital catalog mode
 
   const formattedId = (product.productId?._id || product._id).slice(-6);
   const displaySku = `LSHR${formattedId}`;
@@ -134,6 +132,8 @@ export default function ProductDetailsPage() {
       <div className="mb-6">
         <nav className="flex items-center gap-2 text-[12px] text-gray-500 mb-4 whitespace-nowrap">
           <Link href="/" className="hover:text-black transition-colors">Home</Link>
+          <span>/</span>
+          <Link href={`/${outletSlug}`} className="hover:text-black transition-colors">{outletSlug}</Link>
           <span>/</span>
           <Link href={`/shop/${(product.categoryId?.name || product.category || '').toLowerCase()}`} className="hover:text-black transition-colors">{product.categoryId?.name || product.category} Collection</Link>
           <span>/</span>
