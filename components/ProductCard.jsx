@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useCartStore } from "../store/useCartStore";
-import { useSidebarStore } from "../store/useSidebarStore";
 import {
   Plus,
   Calendar,
@@ -17,14 +15,12 @@ import Link from "next/link";
 import { calculateDeliveryDate, formatDeliveryDate } from "../lib/utils";
 
 export default function ProductCard({ product }) {
-  const addItem = useCartStore((state) => state.addItem);
-  const openCart = useSidebarStore((state) => state.openCart);
   const [selectedUnit, setSelectedUnit] = useState(
-    product.available_units?.[0] || product.unit,
+    product.productId?.available_units?.[0] || product.productId?.unit || product.unit,
   );
 
-  const isOutOfStock = product.stock_status === "Out of stock";
-  const isLimited = product.stock_status === "Limited";
+  const isOutOfStock = product.stock_qty <= 0 || product.stock_status === "Out of stock";
+  const isLimited = product.stock_qty > 0 && product.stock_qty < 10;
 
   // Helper to extract numeric value from units like "5 kg", "500g", "1 L"
   const getUnitMultiplier = (unitStr) => {
@@ -48,7 +44,7 @@ export default function ProductCard({ product }) {
     return value;
   };
 
-  const safePrice = Number(product.unit_price) || 0;
+  const safePrice = Number(product.price || product.unit_price) || 0;
 
   const currentPrice = useMemo(() => {
     const multiplier = getUnitMultiplier(selectedUnit);
@@ -57,10 +53,11 @@ export default function ProductCard({ product }) {
 
   // Calculate price range for display
   const priceRange = useMemo(() => {
-    if (!product.available_units || product.available_units.length <= 1) {
+    const units = product.productId?.available_units || product.available_units;
+    if (!units || units.length <= 1) {
       return `${safePrice.toLocaleString()}৳`;
     }
-    const prices = product.available_units.map(
+    const prices = units.map(
       (unit) => safePrice * getUnitMultiplier(unit),
     );
     const minPrice = Math.min(...prices);
@@ -69,7 +66,7 @@ export default function ProductCard({ product }) {
       return `${minPrice.toLocaleString()}৳`;
     }
     return `${minPrice.toLocaleString()}৳ — ${maxPrice.toLocaleString()}৳`;
-  }, [product.available_units, safePrice]);
+  }, [product, safePrice]);
 
   const [hasSelected, setHasSelected] = useState(false);
 
@@ -78,29 +75,18 @@ export default function ProductCard({ product }) {
     setHasSelected(true);
   };
 
-  const handleAddToCart = () => {
-    // Create a modified product object with the selected unit's price
-    const modifiedProduct = {
-      ...product,
-      unit_price: currentPrice,
-      selected_unit: selectedUnit,
-    };
-    addItem(modifiedProduct, 1);
-    openCart();
-  };
-
-  const whatsappText = encodeURIComponent(`Hi, I would like to buy this product:\n\n*Name:* ${product.name}\n*Code:* LSHR${String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}\n*Price:* ${priceRange}`);
+  const whatsappText = encodeURIComponent(`Hi, I would like to buy this product:\n\n*Name:* ${product.productId?.name || product.name}\n*Code:* LSHR${String(product.productId?._id || product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}\n*Price:* ${priceRange}`);
 
   return (
     <div className="flex flex-col group relative bg-white rounded-md transition-shadow border border-gray-200 h-full overflow-hidden">
       {/* Image Container */}
-      <Link href={`/product/${product.slug || product._id}`} className="relative aspect-square overflow-hidden bg-[#e5e7eb] block">
+      <Link href={`/product/${product.productId?.slug || product.slug || product._id}`} className="relative aspect-square overflow-hidden bg-[#e5e7eb] block">
         {(() => {
-          const displayImage = (product.product_images?.length > 0 ? product.product_images[0] : null) || product.image_url || product.cover_image;
+          const displayImage = (product.productId?.product_images?.length > 0 ? product.productId?.product_images[0] : null) || product.productId?.image_url || product.productId?.cover_image || product.image_url;
           return displayImage ? (
             <img
               src={displayImage}
-              alt={product.name}
+              alt={product.productId?.name || product.name}
               className={`object-contain p-2 w-full h-full transition-transform duration-700 group-hover:scale-105 mix-blend-multiply ${isOutOfStock ? "grayscale opacity-30" : ""}`}
             />
           ) : (
@@ -127,10 +113,10 @@ export default function ProductCard({ product }) {
 
       {/* Content */}
       <div className="flex flex-col flex-1 p-3">
-        <div className="text-[10px] text-gray-400 font-medium mb-1">Code: LSHR{String(product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}</div>
-        <Link href={`/product/${product.slug || product._id}`}>
+        <div className="text-[10px] text-gray-400 font-medium mb-1">Code: LSHR{String(product.productId?._id || product.product_id || product.id || (product._id ? product._id.toString().slice(-4) : '0000')).padStart(4, '0')}</div>
+        <Link href={`/product/${product.productId?.slug || product.slug || product._id}`}>
           <h3 className="text-[15px] font-medium text-gray-800 leading-snug mb-2 transition-colors line-clamp-1 hover:text-black">
-            {product.name}
+            {product.productId?.name || product.name}
           </h3>
         </Link>
 

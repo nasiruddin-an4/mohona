@@ -21,7 +21,7 @@ export default function SalesReportsPage() {
       try {
         const [ordersRes, productsRes] = await Promise.all([
           fetch('/api/orders', { cache: 'no-store' }),
-          fetch('/api/products', { cache: 'no-store' })
+          fetch('/api/outlet-products', { cache: 'no-store' })
         ]);
         const ordersData = await ordersRes.json();
         const productsData = await productsRes.json();
@@ -160,7 +160,7 @@ export default function SalesReportsPage() {
     items.forEach(item => {
       // Find category from products if available
       const product = products.find(p => p._id === (item.product_id || item.product));
-      const catName = product?.category || 'Uncategorized';
+      const catName = product?.categoryId?.name || 'Uncategorized';
       const itemName = item.name || item.product_name || 'Unknown Item';
       
       if(!productStats[itemName]) {

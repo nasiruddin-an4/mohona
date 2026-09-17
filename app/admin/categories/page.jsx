@@ -1,13 +1,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, X, Search, FolderOpen, Tag } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Search, FolderOpen, Tag, Building2, Lock } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { renderToString } from 'react-dom/server';
+import { useAuth } from '../../context/AuthContext';
 
 export default function CategoriesPage() {
+  const { user, isSuperAdmin } = useAuth();
   const [categories, setCategories] = useState([]);
+  const [outlets, setOutlets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOutlet, setSelectedOutlet] = useState('');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,7 +22,8 @@ export default function CategoriesPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    subcategories: []
+    subcategories: [],
+    outletId: '',
   });
   const [subcatInput, setSubcatInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -26,11 +31,23 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+    if (isSuperAdmin) fetchOutlets();
+  }, [isSuperAdmin, selectedOutlet]);
+
+  const fetchOutlets = async () => {
+    try {
+      const res = await fetch('/api/outlets');
+      const data = await res.json();
+      if (data.success) setOutlets(data.data);
+    } catch (err) { console.error(err); }
+  };
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/categories', { cache: 'no-store' });
+      const params = new URLSearchParams();
+      if (selectedOutlet) params.set('outlet', selectedOutlet);
+      else if (!isSuperAdmin && user?.outletId) params.set('outlet', user.outletId);
+      const res = await fetch(`/api/categories?${params}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
         setCategories(data.data);
@@ -45,7 +62,10 @@ export default function CategoriesPage() {
   const openAddModal = () => {
     setIsEditing(false);
     setCurrentId(null);
-    setFormData({ name: '', description: '', subcategories: [] });
+    setFormData({
+      name: '', description: '', subcategories: [],
+      outletId: isSuperAdmin ? '' : (user?.outletId || ''),
+    });
     setSubcatInput('');
     setIsModalOpen(true);
   };
@@ -56,7 +76,8 @@ export default function CategoriesPage() {
     setFormData({ 
       name: cat.name || '', 
       description: cat.description || '',
-      subcategories: cat.subcategories || []
+      subcategories: cat.subcategories || [],
+      outletId: cat.outletId?._id || cat.outletId || '',
     });
     setSubcatInput('');
     setIsModalOpen(true);
@@ -180,19 +201,38 @@ export default function CategoriesPage() {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex-1 overflow-hidden flex flex-col">
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-50 flex items-center justify-between">
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search categories or subcategories..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50/80 border border-gray-100 rounded-full text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400 font-medium"
-            />
+        <div className="p-4 border-b border-gray-50 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search categories or subcategories..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50/80 border border-gray-100 rounded-full text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400 font-medium"
+              />
+            </div>
+            {/* Outlet filter for Super Admin */}
+            {isSuperAdmin && (
+              <select
+                value={selectedOutlet}
+                onChange={e => setSelectedOutlet(e.target.value)}
+                className="px-4 py-2 border border-gray-200 rounded-full text-[13px] text-gray-600 font-medium focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 bg-white min-w-[160px]"
+              >
+                <option value="">All Outlets</option>
+                {outlets.map(o => <option key={o._id} value={o._id}>{o.name}</option>)}
+              </select>
+            )}
+            {/* Outlet badge for manager */}
+            {!isSuperAdmin && user?.outletName && (
+              <div className="flex items-center gap-1.5 text-xs font-bold text-teal-600 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-full">
+                <Building2 size={12} /> {user.outletName} <Lock size={11} className="text-teal-400" />
+              </div>
+            )}
           </div>
           <div className="hidden md:block text-xs font-bold text-gray-400">
-            {filteredCategories.length} Categories Found
+            {filteredCategories.length} Categories
           </div>
         </div>
 
@@ -204,11 +244,12 @@ export default function CategoriesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px]">
               <thead className="text-gray-900 font-bold border-b border-gray-100 bg-gray-50/50">
-                <tr>
-                  <th className="px-6 py-4 w-[40%]">Category Details</th>
-                  <th className="px-6 py-4 w-[45%]">Subcategories</th>
-                  <th className="px-6 py-4 text-right w-[15%]">Actions</th>
-                </tr>
+              <tr>
+                <th className="px-6 py-4 w-[35%] text-[11px] font-bold text-gray-400 uppercase tracking-wider">Category Details</th>
+                {isSuperAdmin && <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Outlet</th>}
+                <th className="px-6 py-4 w-[40%] text-[11px] font-bold text-gray-400 uppercase tracking-wider">Subcategories</th>
+                <th className="px-6 py-4 text-right text-[11px] font-bold text-gray-400 uppercase tracking-wider">Actions</th>
+              </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filteredCategories.length > 0 ? (
@@ -227,6 +268,18 @@ export default function CategoriesPage() {
                           </div>
                         </div>
                       </td>
+                      {/* Outlet column — Super Admin only */}
+                      {isSuperAdmin && (
+                        <td className="px-6 py-4">
+                          {cat.outletId ? (
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2.5 py-1 rounded-full w-fit">
+                              <Building2 size={11} /> {cat.outletId.name || '—'}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400 font-medium bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">Global</span>
+                          )}
+                        </td>
+                      )}
                       <td className="px-6 py-4 align-top pt-5">
                         {cat.subcategories && cat.subcategories.length > 0 ? (
                           <div className="flex flex-wrap gap-2">

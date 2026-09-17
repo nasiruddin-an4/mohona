@@ -43,7 +43,7 @@ export default function OrderDetailsPage() {
   // Fetch products when entering edit mode
   useEffect(() => {
     if (isEditing && products.length === 0) {
-      fetch('/api/products').then(res => res.json()).then(data => {
+      fetch('/api/outlet-products').then(res => res.json()).then(data => {
         if (data.success) setProducts(data.data);
       });
     }
@@ -102,10 +102,10 @@ export default function OrderDetailsPage() {
     } else {
       newOrder.items.push({
         product_id: product._id,
-        name: product.name,
-        price: product.unit_price || product.price || 0,
+        name: product.productId?.name || 'Unknown',
+        price: product.price || 0,
         quantity: 1,
-        image: product.image_url || (product.product_images?.[0]) || null
+        image: product.productId?.image_url || product.productId?.cover_image || null
       });
     }
     recalculateTotals(newOrder);
@@ -230,7 +230,7 @@ export default function OrderDetailsPage() {
     doc.save(`Invoice_${displayOrder.order_number || displayOrder._id}.pdf`);
   };
 
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5);
+  const filteredProducts = products.filter(p => p.productId?.name?.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5);
 
   return (
     <div className="container mx-auto p-2 sm:p-6 min-h-[calc(100vh-120px)] w-full max-w-full animate-in fade-in duration-500 font-sans">
@@ -339,10 +339,10 @@ export default function OrderDetailsPage() {
                         filteredProducts.map(p => (
                           <div key={p._id} className="flex items-center justify-between p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                             <div className="flex items-center gap-3">
-                              <img src={p.image_url || (p.product_images?.[0]) || 'https://via.placeholder.com/30'} className="w-8 h-8 rounded object-contain p-2 border border-gray-200" />
+                              <img src={p.productId?.image_url || p.productId?.cover_image || 'https://via.placeholder.com/30'} className="w-8 h-8 rounded object-contain p-2 border border-gray-200" />
                               <div>
-                                <div className="text-sm font-bold text-gray-900 line-clamp-1">{p.name}</div>
-                                <div className="text-xs font-medium text-gray-500">BDT {p.unit_price || p.price}</div>
+                                <div className="text-sm font-bold text-gray-900 line-clamp-1">{p.productId?.name || 'Unknown'}</div>
+                                <div className="text-xs font-medium text-gray-500">BDT {p.price || 0}</div>
                               </div>
                             </div>
                             <button onClick={() => handleAddProduct(p)} className="px-3 py-1.5 bg-[#0f8b80] text-white text-xs font-bold rounded-lg hover:bg-[#0d7a70] shadow-sm">

@@ -10,7 +10,7 @@ import Swal from 'sweetalert2';
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { items, getCartTotal, clearCart, shippingCost } = useCartStore();
+  const { items, getCartTotal, clearCart, shippingCost, outletId } = useCartStore();
   const addOrder = useOrderStore((state) => state.addOrder);
 
   const [mounted, setMounted] = useState(false);
@@ -71,6 +71,7 @@ export default function PaymentPage() {
         address: formData.address,
         payment_method: paymentMethod === 'cod' ? 'Cash On Delivery' : paymentMethod === 'bkash' ? 'Bkash' : 'Other',
         transaction_id: paymentMethod === 'bkash' ? formData.bkashTrxId : null,
+        outletId: outletId, // Store scoped outlet
         items: items.map(item => ({
           product_id: item.product._id || item.product.product_id || item.product.id,
           name: item.product.name,

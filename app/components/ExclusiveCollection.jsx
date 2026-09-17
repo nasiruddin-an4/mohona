@@ -6,23 +6,15 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import { useCartStore } from "../../store/useCartStore";
-import { useSidebarStore } from "../../store/useSidebarStore";
+import 'swiper/css/navigation';
 
-export default function ExclusiveCollection({ products = [], loading = false }) {
+export default function ExclusiveCollection({ products = [], loading = false, outletSlug = '' }) {
   const prevRef = useRef(null);
   const nextRef = useRef(null);
-  const { addItem } = useCartStore();
-  const { openCart } = useSidebarStore();
 
-  const handleAddToCart = (e, product) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem(product, 1);
-    openCart();
-  };
-
-  const displayProducts = products.slice(0, 8); // Just show the first 8
+  // Filter for featured products first, fallback to regular products if none featured
+  const featured = products.filter(p => p.featured);
+  const displayProducts = (featured.length > 0 ? featured : products).slice(0, 8);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16 mb-12">
@@ -76,7 +68,7 @@ export default function ExclusiveCollection({ products = [], loading = false }) 
         >
           {displayProducts.map((product) => (
             <SwiperSlide key={product._id || product.id}>
-              <Link href={`/product/${product.slug || product._id || product.id}`} className="flex flex-col group block">
+              <Link href={outletSlug ? `/${outletSlug}/product/${product.slug || product._id || product.id}` : `/product/${product.slug || product._id || product.id}`} className="flex flex-col group block">
                 {/* Image Container */}
                 <div className="relative bg-[#f4f5f7] rounded-2xl flex items-center justify-center aspect-square overflow-hidden">
                   <img

@@ -5,6 +5,7 @@ import Category from '@/models/Category';
 export const dynamic = 'force-dynamic';
 
 export async function PUT(request, { params }) {
+  const resolvedParams = await params;
   try {
     await connectDB();
     const { id } = await params;
@@ -26,6 +27,7 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  const resolvedParams = await params;
   try {
     await connectDB();
     const { id } = await params;

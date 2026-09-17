@@ -3,6 +3,9 @@ import mongoose from 'mongoose';
 const SiteSettingsSchema = new mongoose.Schema(
   {
     key: { type: String, required: true, unique: true, default: 'singleton' },
+    adminName: { type: String, default: 'Kristin Watson' },
+    adminRole: { type: String, default: 'Sale Administrator' },
+    adminAvatar: { type: String, default: '' },
     storeName: { type: String, default: 'Mohona by CGFWA' },
     phone: { type: String, default: '01769-441085' },
     phoneAlt: { type: String, default: '+880 1769-441085' },

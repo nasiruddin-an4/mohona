@@ -1,20 +1,37 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import StatCard from './components/StatCard';
 import RevenueChart from './components/RevenueChart';
 import PromotionalSales from './components/PromotionalSales';
 import TopSaleList from './components/TopSaleList';
+import { useAuth } from '../context/AuthContext';
+import { Building2, Lock } from 'lucide-react';
 
 export default function AdminDashboard() {
+  const { user, isSuperAdmin } = useAuth();
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState('');
 
-  const fetchData = async () => {
+  const fetchOutlets = async () => {
     try {
+      const res = await fetch('/api/outlets');
+      const data = await res.json();
+      if (data.success) setOutlets(data.data);
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchData = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+      if (selectedOutlet) params.set('outlet', selectedOutlet);
+      else if (!isSuperAdmin && user?.outletId) params.set('outlet', user.outletId);
+
       const [ordersRes, productsRes] = await Promise.all([
-        fetch('/api/orders', { cache: 'no-store' }),
-        fetch('/api/products', { cache: 'no-store' })
+        fetch(`/api/orders?${params}`, { cache: 'no-store' }),
+        fetch(`/api/outlet-products?${params}`, { cache: 'no-store' })
       ]);
       const ordersData = await ordersRes.json();
       const productsData = await productsRes.json();
@@ -24,13 +41,14 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
     }
-  };
+  }, [selectedOutlet, isSuperAdmin, user?.outletId]);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 3000); // 3 seconds real-time polling
+    if (isSuperAdmin) fetchOutlets();
+    const interval = setInterval(fetchData, 10000); // 10 seconds polling
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchData, isSuperAdmin]);
 
   // Compute Real Metrics
   const totalSales = orders
@@ -67,6 +85,31 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+      {/* Top Bar for Outlet Selection */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Dashboard Overview</h1>
+          <p className="text-sm text-gray-500">Monitor your sales, orders, and products</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {isSuperAdmin && (
+            <select
+              value={selectedOutlet}
+              onChange={e => setSelectedOutlet(e.target.value)}
+              className="px-4 py-2 border border-gray-200 rounded-full text-[13px] text-gray-600 font-medium focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 bg-gray-50"
+            >
+              <option value="">All Outlets (Global)</option>
+              {outlets.map(o => <option key={o._id} value={o._id}>{o.name}</option>)}
+            </select>
+          )}
+          {!isSuperAdmin && user?.outletName && (
+            <div className="flex items-center gap-2 text-sm font-bold text-teal-700 bg-teal-50 border border-teal-100 px-4 py-2 rounded-full">
+              <Building2 size={16} /> {user.outletName} <Lock size={14} className="text-teal-400" />
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Top Stat Cards - 8 Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

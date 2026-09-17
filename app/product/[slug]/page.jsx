@@ -2,17 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useCartStore } from '../../../store/useCartStore';
-import { useSidebarStore } from '../../../store/useSidebarStore';
-import { ChevronRight, ChevronLeft, ShoppingCart, Copy, Store, ChevronDown, ChevronUp, Check, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Copy, Store, ChevronDown, ChevronUp, Check, Star, Phone } from 'lucide-react';
 import Link from 'next/link';
 import ImageZoom from '../../../components/ImageZoom';
 
 export default function ProductDetailsPage() {
   const { slug } = useParams();
   const router = useRouter();
-  const addItem = useCartStore((state) => state.addItem);
-  const openCart = useSidebarStore((state) => state.openCart);
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +28,7 @@ export default function ProductDetailsPage() {
 
   const handleCopySku = () => {
     if (product) {
-      const formattedId = product._id.slice(-6);
+      const formattedId = (product.productId?._id || product._id).slice(-6);
       const sku = `LSHR${formattedId}`;
       navigator.clipboard.writeText(sku);
       setCopied(true);
@@ -81,7 +77,7 @@ export default function ProductDetailsPage() {
         const data = await res.json();
         if (data.success) {
           setProduct(data.data);
-          setSelectedUnit(data.data.available_units?.[0] || data.data.unit || 'N/A');
+          setSelectedUnit(data.data.productId?.available_units?.[0] || data.data.available_units?.[0] || data.data.productId?.unit || data.data.unit || 'N/A');
           
           // Fetch reviews
           if (data.data._id) {
@@ -123,22 +119,14 @@ export default function ProductDetailsPage() {
     );
   }
 
-  const handleAddToCart = () => {
-    const modifiedProduct = {
-      ...product,
-      unit_price: product.unit_price,
-      selected_unit: selectedUnit
-    };
-    addItem(modifiedProduct, 1);
-    openCart();
-  };
+  // Add to cart removed for digital catalog mode
 
-  const formattedId = product._id.slice(-6);
+  const formattedId = (product.productId?._id || product._id).slice(-6);
   const displaySku = `LSHR${formattedId}`;
 
-  const displayImages = product.product_images?.length > 0 
-    ? product.product_images 
-    : (product.image_url ? [product.image_url] : []);
+  const displayImages = product.productId?.product_images?.length > 0 
+    ? product.productId.product_images 
+    : (product.productId?.image_url ? [product.productId.image_url] : (product.product_images?.length > 0 ? product.product_images : (product.image_url ? [product.image_url] : [])));
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -147,9 +135,9 @@ export default function ProductDetailsPage() {
         <nav className="flex items-center gap-2 text-[12px] text-gray-500 mb-4 whitespace-nowrap">
           <Link href="/" className="hover:text-black transition-colors">Home</Link>
           <span>/</span>
-          <Link href={`/shop/${product.category.toLowerCase()}`} className="hover:text-black transition-colors">{product.category} Collection</Link>
+          <Link href={`/shop/${(product.categoryId?.name || product.category || '').toLowerCase()}`} className="hover:text-black transition-colors">{product.categoryId?.name || product.category} Collection</Link>
           <span>/</span>
-          <span className="text-gray-500">{product.name}</span>
+          <span className="text-gray-500">{product.productId?.name || product.name}</span>
         </nav>
         
         <button 
@@ -182,7 +170,7 @@ export default function ProductDetailsPage() {
           {/* Main Image */}
           <div className="order-1 md:order-2 flex-grow aspect-[4/5] md:aspect-auto md:h-[450px] lg:h-[500px] bg-gray-50 border border-gray-100 overflow-hidden relative">
              {displayImages.length > 0 ? (
-               <ImageZoom src={displayImages[selectedImage] || displayImages[0]} alt={`${product.name} main view`} />
+               <ImageZoom src={displayImages[selectedImage] || displayImages[0]} alt={`${product.productId?.name || product.name} main view`} />
              ) : (
                <div className="flex items-center justify-center w-full h-full text-gray-400">No Image Available</div>
              )}
@@ -192,12 +180,12 @@ export default function ProductDetailsPage() {
         {/* Right: Product Info */}
         <div className="w-full lg:w-[50%] flex flex-col pt-2 lg:pl-10 pr-4 lg:pr-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 leading-tight">
-            {product.name}
+            {product.productId?.name || product.name}
           </h1>
           <div className="text-sm text-gray-500 font-medium mb-4">Product Code: {displaySku}</div>
           
           <div className="text-[15px] text-gray-900 mb-4">
-            ৳ {product.unit_price.toFixed(2)} <span className="text-gray-500">+ VAT</span>
+            ৳ {(product.price || product.unit_price || 0).toFixed(2)} <span className="text-gray-500">+ VAT</span>
           </div>
 
           <div className="flex items-center gap-2 text-[13px] text-gray-600 mb-8">
@@ -215,7 +203,7 @@ export default function ProductDetailsPage() {
           <div className="mb-8">
             <div className="text-[14px] font-medium text-gray-900 mb-3">Size:</div>
             <div className="flex flex-wrap gap-3">
-              {(product.available_units || [product.unit || 'N/A']).map((unit) => (
+              {((product.productId?.available_units?.length > 0 ? product.productId.available_units : null) || product.available_units || [product.productId?.unit || product.unit || 'N/A']).map((unit) => (
                 <button
                   key={unit}
                   onClick={() => setSelectedUnit(unit)}
@@ -252,7 +240,7 @@ export default function ProductDetailsPage() {
               </button>
               {infoExpanded && (
                 <div className="pb-4 text-[13px] text-gray-600 leading-relaxed">
-                  {product.description || 'No description available for this product.'}
+                  {product.productId?.description || product.description || 'No description available for this product.'}
                 </div>
               )}
             </div>
@@ -269,10 +257,10 @@ export default function ProductDetailsPage() {
               {detailsExpanded && (
                 <div className="pb-6 pt-2">
                   <div className="flex flex-col gap-3">
-                    {product.colors && product.colors.length > 0 && (
+                    {(product.productId?.colors || product.colors) && (product.productId?.colors || product.colors).length > 0 && (
                       <div className="flex items-start text-[13px]">
                         <div className="w-24 text-gray-900 font-medium">Color</div>
-                        <div className="text-gray-600">{product.colors.join(', ')}</div>
+                        <div className="text-gray-600">{(product.productId?.colors || product.colors).join(', ')}</div>
                       </div>
                     )}
                     {selectedUnit && selectedUnit !== 'N/A' && (
@@ -281,22 +269,22 @@ export default function ProductDetailsPage() {
                         <div className="text-gray-600">{selectedUnit}</div>
                       </div>
                     )}
-                    {product.fabric && (
+                    {(product.productId?.fabric || product.fabric) && (
                       <div className="flex items-start text-[13px]">
                         <div className="w-24 text-gray-900 font-medium">Fabric</div>
-                        <div className="text-gray-600">{product.fabric}</div>
+                        <div className="text-gray-600">{product.productId?.fabric || product.fabric}</div>
                       </div>
                     )}
-                    {product.wash_care && (
+                    {(product.productId?.wash_care || product.wash_care) && (
                       <div className="flex items-start text-[13px]">
                         <div className="w-24 text-gray-900 font-medium">Wash Care</div>
-                        <div className="text-gray-600">{product.wash_care}</div>
+                        <div className="text-gray-600">{product.productId?.wash_care || product.wash_care}</div>
                       </div>
                     )}
-                    {product.material && (
+                    {(product.productId?.material || product.material) && (
                       <div className="flex items-start text-[13px]">
                         <div className="w-24 text-gray-900 font-medium">Material</div>
-                        <div className="text-gray-600">{product.material}</div>
+                        <div className="text-gray-600">{product.productId?.material || product.material}</div>
                       </div>
                     )}
                   </div>

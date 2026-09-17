@@ -18,7 +18,7 @@ export default function DraftProductsPage() {
 
   const fetchDraftProducts = async () => {
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch('/api/outlet-products');
       const data = await res.json();
       if (data.success) {
         const drafts = data.data.filter(p => p.status === 'Draft');
@@ -34,7 +34,7 @@ export default function DraftProductsPage() {
   const deleteProduct = async (id) => {
     if (!confirm('Are you sure you want to delete this draft product?')) return;
     try {
-      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/outlet-products/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setProducts(products.filter(p => p._id !== id));
       }
@@ -44,8 +44,8 @@ export default function DraftProductsPage() {
   };
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
+    const matchesSearch = p.productId?.name?.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = selectedCategory ? p.categoryId?.name === selectedCategory : true;
     return matchesSearch && matchesCategory;
   });
 
@@ -100,10 +100,10 @@ export default function DraftProductsPage() {
           </div>
 
           <Link 
-            href="/admin/products/add" 
+            href="/admin/products" 
             className="bg-[#0f8b80] hover:bg-[#0c7269] text-white px-5 py-2.5 rounded-full text-sm font-bold transition-colors"
           >
-            + Add Product
+            Manage Products
           </Link>
         </div>
       </div>
@@ -144,17 +144,17 @@ export default function DraftProductsPage() {
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded bg-gray-50 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center p-1">
-                              {product.cover_image || product.image_url ? (
-                                <img src={product.cover_image || product.image_url} alt={product.name} className="w-full h-full object-contain p-2" />
+                              {product.productId?.image_url || product.productId?.cover_image ? (
+                                <img src={product.productId?.image_url || product.productId?.cover_image} alt={product.productId?.name} className="w-full h-full object-contain p-2" />
                               ) : (
                                 <div className="w-full h-full bg-gray-200"></div>
                               )}
                             </div>
-                            <span className="font-medium text-gray-600">{product.name}</span>
+                            <span className="font-medium text-gray-600">{product.productId?.name}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-gray-500">{product.category}</td>
-                        <td className="px-4 py-4 font-bold text-[#0f8b80]">BDT {product.unit_price}</td>
+                        <td className="px-4 py-4 text-gray-500">{product.categoryId?.name}</td>
+                        <td className="px-4 py-4 font-bold text-[#0f8b80]">BDT {product.price}</td>
                         <td className="px-4 py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block
                             ${stockStatus === 'In stock' 
@@ -174,10 +174,7 @@ export default function DraftProductsPage() {
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3 text-gray-400">
-                            <Link href={`/admin/products/${product._id}`} className="hover:text-gray-900 transition-colors">
-                              <Eye size={16} strokeWidth={2} />
-                            </Link>
-                            <Link href={`/admin/products/${product._id}/edit`} className="hover:text-gray-900 transition-colors">
+                            <Link href={`/admin/products`} className="hover:text-gray-900 transition-colors">
                               <Edit2 size={16} strokeWidth={2} />
                             </Link>
                             <button onClick={() => deleteProduct(product._id)} className="hover:text-red-500 transition-colors">

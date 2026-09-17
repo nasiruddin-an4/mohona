@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, ChevronDown, Eye } from 'lucide-react';
+import { Search, ChevronDown, Eye, Building2, Lock } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function InventoryPage() {
+  const { user, isSuperAdmin } = useAuth();
   const [products, setProducts] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -13,13 +17,21 @@ export default function InventoryPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
+  const fetchOutlets = async () => {
     try {
-      const res = await fetch('/api/products', { cache: 'no-store' });
+      const res = await fetch('/api/outlets');
+      const data = await res.json();
+      if (data.success) setOutlets(data.data);
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+      if (selectedOutlet) params.set('outlet', selectedOutlet);
+      else if (!isSuperAdmin && user?.outletId) params.set('outlet', user.outletId);
+
+      const res = await fetch(`/api/outlet-products?${params}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
         setProducts(data.data);
@@ -29,16 +41,23 @@ export default function InventoryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedOutlet, isSuperAdmin, user?.outletId]);
+
+  useEffect(() => {
+    fetchProducts();
+    if (isSuperAdmin) fetchOutlets();
+  }, [fetchProducts, isSuperAdmin]);
 
   // Get unique categories for the filter
-  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const categories = [...new Set(products.map(p => p.categoryId?.name).filter(Boolean))];
 
   // Apply filters
   let filteredProducts = products.filter(p => {
-    const matchesSearch = (p.name || '').toLowerCase().includes(search.toLowerCase()) || 
-                          (p.product_id || p._id).toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = categoryFilter ? p.category === categoryFilter : true;
+    const pName = p.productId?.name || '';
+    const pId = p.productId?._id || p._id;
+    const matchesSearch = pName.toLowerCase().includes(search.toLowerCase()) || 
+                          pId.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = categoryFilter ? p.categoryId?.name === categoryFilter : true;
     return matchesSearch && matchesCategory;
   });
 
@@ -61,17 +80,33 @@ export default function InventoryPage() {
       </div>
 
       <div className="bg-white flex-1 flex flex-col rounded-2xl">
-        {/* Filters Bar */}
         <div className="pb-4 mb-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50/80 border border-gray-100 rounded-full text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400"
-            />
+          <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50/80 border border-gray-100 rounded-full text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400"
+              />
+            </div>
+            {isSuperAdmin && (
+              <select
+                value={selectedOutlet}
+                onChange={e => setSelectedOutlet(e.target.value)}
+                className="px-4 py-2 border border-gray-200 rounded-full text-[13px] text-gray-600 font-medium focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 bg-gray-50"
+              >
+                <option value="">All Outlets (Global)</option>
+                {outlets.map(o => <option key={o._id} value={o._id}>{o.name}</option>)}
+              </select>
+            )}
+            {!isSuperAdmin && user?.outletName && (
+              <div className="flex items-center gap-1.5 text-xs font-bold text-teal-600 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-full">
+                <Building2 size={12} /> {user.outletName} <Lock size={11} className="text-teal-400" />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
@@ -119,6 +154,7 @@ export default function InventoryPage() {
                   </th>
                   <th className="px-4 py-4 font-bold text-gray-600">ID</th>
                   <th className="px-4 py-4 font-bold text-gray-600">Name</th>
+                  {isSuperAdmin && <th className="px-4 py-4 font-bold text-gray-600">Outlet</th>}
                   <th className="px-4 py-4 font-bold text-gray-600">Category</th>
                   <th className="px-4 py-4 font-bold text-gray-600">Stock</th>
                   <th className="px-4 py-4 font-bold text-gray-600">Sold Out</th>
@@ -131,7 +167,8 @@ export default function InventoryPage() {
                   filteredProducts.map((product, index) => {
                     const dateObj = new Date(product.createdAt || Date.now());
                     const formattedDate = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-                    const productImg = product.cover_image || product.image_url || 'https://placehold.co/100x100/eeeeee/999999?text=No+Image';
+                    const mp = product.productId || {};
+                    const productImg = mp.cover_image || mp.image_url || 'https://placehold.co/100x100/eeeeee/999999?text=No+Image';
                     
                     // Mocking 'sold out' amount for design display since order history isn't fully linked
                     const soldOutMock = Math.floor(Math.random() * 500) + 10;
@@ -142,18 +179,36 @@ export default function InventoryPage() {
                           <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#0f8b80] focus:ring-[#0f8b80]" />
                         </td>
                         <td className="px-4 py-4 text-gray-500">
-                          #{product.product_id || product._id.slice(-5)}
+                          #{mp._id?.slice(-5) || product._id.slice(-5)}
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-gray-50">
-                              <img src={productImg} alt={product.name} className="w-full h-full object-contain p-2" />
+                              <img src={productImg} alt={mp.name} className="w-full h-full object-contain p-2" />
                             </div>
-                            <span className="font-medium text-gray-700">{product.name}</span>
+                            <span className="font-medium text-gray-700">{mp.name || 'Unknown'}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-gray-500">{product.category || '-'}</td>
-                        <td className="px-4 py-4 text-gray-500">{product.stock_qty || 0} pcs</td>
+                        {isSuperAdmin && (
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-teal-600">
+                              <Building2 size={12} />
+                              {product.outletId?.name || '—'}
+                            </div>
+                          </td>
+                        )}
+                        <td className="px-4 py-4 text-gray-500">{product.categoryId?.name || '-'}</td>
+                        <td className="px-4 py-4 text-gray-500">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-700">{product.stock_qty || 0} pcs</span>
+                            {product.stock_status && (
+                              <span className={`text-[10px] font-bold uppercase ${
+                                product.stock_status === 'In stock' ? 'text-blue-500' :
+                                product.stock_status === 'Out of stock' ? 'text-red-500' : 'text-amber-500'
+                              }`}>{product.stock_status}</span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-4 text-gray-500">{soldOutMock} pcs</td>
                         <td className="px-4 py-4 text-gray-500">{formattedDate}</td>
                         <td className="px-4 py-4">

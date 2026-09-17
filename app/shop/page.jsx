@@ -48,31 +48,35 @@ export default function ShopPage() {
     fetchProducts();
   }, []);
 
-  const allColors = Array.from(new Set(products.flatMap(p => p.colors || []))).sort();
+  const allColors = Array.from(new Set(products.flatMap(p => p.productId?.colors || p.colors || []))).sort();
 
   // Filter products based on category, search, color, and price
   let filteredProducts = products.filter((product) => {
-    const matchesCategory = activeCategory === 'All' || product.category === activeCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory = activeCategory === 'All' || (product.categoryId?.name || product.category) === activeCategory;
+    const pName = product.productId?.name || product.name || '';
+    const pDesc = product.productId?.description || product.description || '';
+    const matchesSearch = pName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pDesc.toLowerCase().includes(searchQuery.toLowerCase());
 
     let matchesPrice = true;
-    if (priceFilter === 'under_50') matchesPrice = product.unit_price < 50;
-    else if (priceFilter === '50_100') matchesPrice = product.unit_price >= 50 && product.unit_price <= 100;
-    else if (priceFilter === 'over_100') matchesPrice = product.unit_price > 100;
+    const price = product.price || product.unit_price || 0;
+    if (priceFilter === 'under_50') matchesPrice = price < 50;
+    else if (priceFilter === '50_100') matchesPrice = price >= 50 && price <= 100;
+    else if (priceFilter === 'over_100') matchesPrice = price > 100;
 
     let matchesColor = true;
     if (colorFilter !== 'all') {
-      matchesColor = product.colors && product.colors.includes(colorFilter);
+      const colors = product.productId?.colors || product.colors;
+      matchesColor = colors && colors.includes(colorFilter);
     }
 
     return matchesCategory && matchesSearch && matchesPrice && matchesColor;
   });
 
   if (sortBy === 'price_asc') {
-    filteredProducts.sort((a, b) => a.unit_price - b.unit_price);
+    filteredProducts.sort((a, b) => (a.price || a.unit_price || 0) - (b.price || b.unit_price || 0));
   } else if (sortBy === 'price_desc') {
-    filteredProducts.sort((a, b) => b.unit_price - a.unit_price);
+    filteredProducts.sort((a, b) => (b.price || b.unit_price || 0) - (a.price || a.unit_price || 0));
   }
 
   return (

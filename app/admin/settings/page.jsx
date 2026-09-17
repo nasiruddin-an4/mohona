@@ -1,12 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, Loader2, Store, Phone, Mail, MapPin, Share2, Globe, Camera, PlayCircle, Briefcase } from 'lucide-react';
+import { Save, Loader2, Store, Phone, Mail, MapPin, Share2, Globe, Camera, PlayCircle, Briefcase, UserCircle } from 'lucide-react';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
+import ImageUploader from '../components/ImageUploader';
+import { uploadToImageKit } from '@/lib/imagekit';
 
 export default function AdminSettingsPage() {
   const { settings, loading: contextLoading, refreshSettings } = useSiteSettings();
+  const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
   const [formData, setFormData] = useState({
+    adminName: '',
+    adminRole: '',
+    adminAvatar: '',
     storeName: '',
     phone: '',
     phoneAlt: '',
@@ -54,18 +60,26 @@ export default function AdminSettingsPage() {
     setSaveMessage({ type: '', text: '' });
 
     try {
+      let payload = formData;
+
+      if (pendingAvatarFile) {
+        const avatarUrl = await uploadToImageKit(pendingAvatarFile, '/admin/avatars');
+        payload = { ...formData, adminAvatar: avatarUrl };
+      }
+
       const response = await fetch('/api/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (data.success) {
         setSaveMessage({ type: 'success', text: 'Settings updated successfully!' });
+        setPendingAvatarFile(null);
         refreshSettings(); // Refresh context
       } else {
         setSaveMessage({ type: 'error', text: data.error || 'Failed to update settings.' });
@@ -115,7 +129,51 @@ export default function AdminSettingsPage() {
           
           {/* Main Column */}
           <div className="xl:col-span-2 space-y-8">
-            
+
+            {/* Admin Profile Card */}
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-xl transition-all duration-300">
+              <div className="px-8 py-5 border-b border-gray-100 flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                  <UserCircle size={20} strokeWidth={2.5} />
+                </div>
+                <h2 className="font-extrabold text-gray-900 text-lg">Admin Profile</h2>
+              </div>
+              <div className="p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <ImageUploader
+                    value={formData.adminAvatar}
+                    onFileSelect={setPendingAvatarFile}
+                    label="Profile Picture"
+                    helperText="Square image recommended"
+                  />
+                  <div className="space-y-6">
+                    <div className="relative">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Admin Name</label>
+                      <input
+                        type="text"
+                        name="adminName"
+                        value={formData.adminName || ''}
+                        onChange={handleInputChange}
+                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#2a2d96]/10 focus:border-[#2a2d96] transition-all text-gray-900 font-medium"
+                        placeholder="e.g. Kristin Watson"
+                      />
+                    </div>
+                    <div className="relative">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Role / Title</label>
+                      <input
+                        type="text"
+                        name="adminRole"
+                        value={formData.adminRole || ''}
+                        onChange={handleInputChange}
+                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#2a2d96]/10 focus:border-[#2a2d96] transition-all text-gray-900 font-medium"
+                        placeholder="e.g. Sale Administrator"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* General Info Card */}
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-xl transition-all duration-300">
               <div className="px-8 py-5 border-b border-gray-100 flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white">

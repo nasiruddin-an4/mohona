@@ -18,7 +18,7 @@ export default function InventoryDetailsPage() {
 
   const fetchProductDetails = async () => {
     try {
-      const res = await fetch(`/api/products/${id}`);
+      const res = await fetch(`/api/outlet-products/${id}`);
       const data = await res.json();
       if (data.success) {
         setProduct(data.data);
@@ -46,7 +46,7 @@ export default function InventoryDetailsPage() {
     );
   }
 
-  const productImg = product.cover_image || product.image_url || 'https://placehold.co/100x100/eeeeee/999999?text=No+Image';
+  const productImg = product.productId?.image_url || product.productId?.cover_image || 'https://placehold.co/100x100/eeeeee/999999?text=No+Image';
 
   // Mock data for the UI
   const mockRecentStock = [
@@ -77,12 +77,12 @@ export default function InventoryDetailsPage() {
               <img src={productImg} alt={product.name} className="max-w-full max-h-full object-contain p-2" />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 text-lg leading-tight">{product.name}</h3>
+              <h3 className="font-bold text-gray-900 text-lg leading-tight">{product.productId?.name}</h3>
               <div className="flex items-center gap-1.5 text-gray-500 text-sm mt-1">
                 <Layers size={14} className="text-gray-400" />
                 <span className="font-medium text-[13px]">Category Name</span>
                 <span className="text-gray-400 mx-1">•</span>
-                <span className="font-medium text-gray-800 text-[13px]">{product.category || '-'}</span>
+                <span className="font-medium text-gray-800 text-[13px]">{product.categoryId?.name || '-'}</span>
               </div>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function InventoryDetailsPage() {
             </div>
             <div>
               <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Slug</p>
-              <p className="text-[13px] font-bold text-gray-700 max-w-[120px] truncate">{product.slug || 'Slug Information'}</p>
+              <p className="text-[13px] font-bold text-gray-700 max-w-[120px] truncate">{product.productId?.slug || 'Slug Information'}</p>
             </div>
           </div>
 

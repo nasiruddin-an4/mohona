@@ -11,6 +11,9 @@ const SiteSettingsContext = createContext({
 
 export function SiteSettingsProvider({ children }) {
   const [settings, setSettings] = useState({
+    adminName: 'Kristin Watson',
+    adminRole: 'Sale Administrator',
+    adminAvatar: '',
     storeName: 'Mohona by CGFWA',
     phone: '01769-441085',
     phoneAlt: '+880 1769-441085',

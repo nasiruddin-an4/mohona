@@ -54,32 +54,37 @@ export default function CategoryPage({ params }) {
     fetchProducts();
   }, []);
 
-  const allColors = Array.from(new Set(products.flatMap(p => p.colors || []))).sort();
+  const allColors = Array.from(new Set(products.flatMap(p => p.productId?.colors || p.colors || []))).sort();
 
   // Filter products based on URL category and search
   let filteredProducts = products.filter((product) => {
-    const matchesCategory = product.category.toLowerCase() === categoryName.toLowerCase();
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const pCategory = product.categoryId?.name || product.category || '';
+    const matchesCategory = pCategory.toLowerCase() === categoryName.toLowerCase();
+    
+    const pName = product.productId?.name || product.name || '';
+    const pDesc = product.productId?.description || product.description || '';
+    const matchesSearch = pName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pDesc.toLowerCase().includes(searchQuery.toLowerCase());
       
     let matchesPrice = true;
-    const price = Number(product.unit_price) || 0;
+    const price = product.price || product.unit_price || 0;
     if (priceFilter === 'under_50') matchesPrice = price < 50;
     else if (priceFilter === '50_100') matchesPrice = price >= 50 && price <= 100;
     else if (priceFilter === 'over_100') matchesPrice = price > 100;
     
     let matchesColor = true;
     if (colorFilter !== 'all') {
-       matchesColor = product.colors && product.colors.includes(colorFilter);
+       const colors = product.productId?.colors || product.colors;
+       matchesColor = colors && colors.includes(colorFilter);
     }
     
     return matchesCategory && matchesSearch && matchesPrice && matchesColor;
   });
 
   if (sortBy === 'price_asc') {
-    filteredProducts.sort((a, b) => (Number(a.unit_price) || 0) - (Number(b.unit_price) || 0));
+    filteredProducts.sort((a, b) => (a.price || a.unit_price || 0) - (b.price || b.unit_price || 0));
   } else if (sortBy === 'price_desc') {
-    filteredProducts.sort((a, b) => (Number(b.unit_price) || 0) - (Number(a.unit_price) || 0));
+    filteredProducts.sort((a, b) => (b.price || b.unit_price || 0) - (a.price || a.unit_price || 0));
   }
 
   return (

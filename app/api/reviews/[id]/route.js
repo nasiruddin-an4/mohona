@@ -26,6 +26,7 @@ async function connectDB() {
 }
 
 export async function PATCH(request, { params }) {
+  const resolvedParams = await params;
   try {
     await connectDB();
     const body = await request.json();
@@ -50,6 +51,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  const resolvedParams = await params;
   try {
     await connectDB();
     const { id } = await params;

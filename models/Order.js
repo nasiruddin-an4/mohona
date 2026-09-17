@@ -11,6 +11,11 @@ const OrderItemSchema = new mongoose.Schema({
 const OrderSchema = new mongoose.Schema(
   {
     order_number: { type: String, unique: true, sparse: true },
+    outletId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Outlet',
+      default: null, // null = legacy orders before outlet system
+    },
     customer_name: { type: String, required: true },
     email: { type: String, required: true },
     contact_number: { type: String, required: true },

@@ -13,17 +13,20 @@ import {
   PieChart,
   Settings,
   LogOut,
-  HelpCircle,
   FileText,
   ShieldAlert,
   ChevronLeft,
   ChevronDown,
-  ChevronUp
+  Building2,
+  UserCog,
+  History,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
+// Items marked with superAdminOnly: true are hidden from managers/staff
 const sidebarSections = [
   {
-    title: null, // No title for top level items
+    title: null,
     items: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/admin' }
     ]
@@ -56,6 +59,7 @@ const sidebarSections = [
       { name: 'Manage Inventory', icon: Store, path: '/admin/inventory' },
     ]
   },
+  /*
   {
     items: [
       {
@@ -73,28 +77,39 @@ const sidebarSections = [
     ]
   },
   {
-
     items: [
-      { name: 'Sales reports', icon: FileText, path: '/admin/reports/sales' },
+      { name: 'Sales Reports', icon: FileText, path: '/admin/reports/sales' },
+    ]
+  },
+  */
+  {
+    title: 'Management',
+    superAdminOnly: true, // entire section hidden for non-super-admins
+    items: [
+      { name: 'Outlets', icon: Building2, path: '/admin/outlets', superAdminOnly: true },
+      { name: 'Users & Staff', icon: UserCog, path: '/admin/admins', superAdminOnly: true },
+      // { name: 'Customers', icon: Users, path: '/admin/customers' },
     ]
   },
   {
     items: [
-      { name: 'Admin', icon: Users, path: '/admin/admins' },
-      { name: 'Customer', icon: Users, path: '/admin/customers' },
-    ]
+      // Customers visible to managers too
+      // { name: 'Customers', icon: Users, path: '/admin/customers', managerVisible: true },
+      { name: 'Audit Log', icon: History, path: '/admin/audit-log' },
+    ],
+    notSuperAdmin: true, // only shown for non-super-admins
   },
   {
     items: [
       { name: 'Settings', icon: Settings, path: '/admin/settings' },
     ]
   },
-
 ];
 
 export default function AdminSidebar({ isOpen, setIsOpen }) {
   const pathname = usePathname();
   const [openMenus, setOpenMenus] = useState({});
+  const { user, isSuperAdmin } = useAuth();
 
   React.useEffect(() => {
     let activeAccordion = {};
@@ -106,8 +121,6 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
         }
       });
     });
-    // If no accordion is active, keep the current one open, or close all. 
-    // We will just set it to the active one to ensure it stays in sync.
     if (Object.keys(activeAccordion).length > 0) {
       setOpenMenus(activeAccordion);
     } else {
@@ -117,17 +130,22 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
 
   const toggleMenu = (name) => {
     setOpenMenus(prev => {
-      if (prev[name]) {
-        return {}; // Close if already open
-      }
-      return { [name]: true }; // Open only the clicked one
+      if (prev[name]) return {};
+      return { [name]: true };
     });
   };
+
+  // Filter sections based on role
+  const visibleSections = sidebarSections.filter(section => {
+    if (section.superAdminOnly && !isSuperAdmin) return false;
+    if (section.notSuperAdmin && isSuperAdmin) return false;
+    return true;
+  });
 
   return (
     <aside
       className={`bg-slate-900 flex flex-col transition-all duration-300 z-20
-        ${isOpen ? 'w-72 translate-x-0' : 'w-20 -translate-x-full lg:translate-x-0 lg:w-20'} 
+        ${isOpen ? 'w-64 translate-x-0' : 'w-20 -translate-x-full lg:translate-x-0 lg:w-20'} 
         fixed lg:relative h-screen`}
     >
       {/* Logo Area */}
@@ -147,21 +165,37 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
         </button>
       </div>
 
+      {/* Outlet badge for managers */}
+      {isOpen && user && !isSuperAdmin && user.outletName && (
+        <div className="mx-4 mt-4 px-3 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
+          <Building2 size={14} className="text-orange-400 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Your Outlet</p>
+            <p className="text-xs text-white font-bold truncate">{user.outletName}</p>
+          </div>
+        </div>
+      )}
+
       {/* Menu Area */}
       <div className="flex-1 overflow-y-auto py-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {sidebarSections.map((section, sIdx) => (
-          <div key={sIdx} className={sIdx !== sidebarSections.length - 1 ? "mb-1.5" : ""}>
+        {visibleSections.map((section, sIdx) => (
+          <div key={sIdx} className={sIdx !== visibleSections.length - 1 ? "mb-1.5" : ""}>
             {section.title && isOpen && (
               <div className="px-6 mb-3">
-                <span className="text-[10px] font-bold text-white uppercase tracking-widest">{section.title}</span>
+                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{section.title}</span>
               </div>
             )}
 
             <ul className="space-y-1.5 px-4">
-              {section.items.map((item) => {
+              {section.items
+                .filter(item => {
+                  // Hide super-admin-only items from managers
+                  if (item.superAdminOnly && !isSuperAdmin) return false;
+                  return true;
+                })
+                .map((item) => {
                 const isAccordionOpen = openMenus[item.name];
 
-                // If it's an accordion item
                 if (item.isAccordion) {
                   const hasActiveChild = item.subItems.some(sub => pathname === sub.path || pathname.startsWith(sub.path + '/'));
 
@@ -187,7 +221,6 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                         )}
                       </button>
 
-                      {/* Submenu with vertical line and smooth transition */}
                       {isOpen && (
                         <div
                           className={`overflow-hidden transition-all duration-300 ease-in-out ${isAccordionOpen ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'
@@ -202,7 +235,6 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                                      !item.subItems.some(other => other !== subItem && pathname.startsWith(other.path)));
                                 return (
                                   <li key={subItem.name} className="relative">
-                                    {/* Dot on the line */}
                                     <div className={`absolute -left-[25px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border-2 transition-colors duration-300
                                       ${isSubActive ? 'bg-orange-500 border-orange-500' : 'bg-transparent border-white/20'}`}
                                     />
@@ -226,7 +258,6 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                   );
                 }
 
-                // Normal items
                 const isActive = pathname === item.path || (pathname.startsWith(item.path + '/') && item.path !== '/admin');
                 return (
                   <li key={item.name}>
@@ -240,9 +271,6 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                       <item.icon size={18} className={isActive ? 'text-orange-500' : ''} />
                       {isOpen && (
                         <span className="flex-1 text-sm">{item.name}</span>
-                      )}
-                      {isOpen && item.hasSubmenu && (
-                        <ChevronDown size={16} className="text-white/40" />
                       )}
                     </Link>
                   </li>

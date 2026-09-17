@@ -23,7 +23,7 @@ export default function StockProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products', { cache: 'no-store' });
+      const res = await fetch('/api/outlet-products', { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
         setProducts(data.data);
@@ -35,11 +35,13 @@ export default function StockProductsPage() {
     }
   };
 
-  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+  const categories = Array.from(new Set(products.map(p => p.categoryId?.name).filter(Boolean)));
 
   let filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
+    const productName = p.productId?.name || '';
+    const productCategory = p.categoryId?.name || '';
+    const matchesSearch = productName.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = selectedCategory ? productCategory === selectedCategory : true;
     const matchesStatus = selectedStatus ? (p.status || 'Publish') === selectedStatus : true;
     
     let matchesStock = true;
@@ -87,11 +89,14 @@ export default function StockProductsPage() {
       if (stockQty === 0) stockBadge = 'Out of Stock';
       else if (stockQty < 10) stockBadge = 'Low Stock';
 
+      const productName = product.productId?.name || '-';
+      const productCategory = product.categoryId?.name || '-';
+
       const productData = [
         `#${product._id.slice(-5)}`,
-        product.name,
-        product.category || '-',
-        `BDT ${product.unit_price}`,
+        productName,
+        productCategory,
+        `BDT ${product.price || 0}`,
         stockQty.toString(),
         stockBadge,
         product.status || 'Publish'
@@ -283,6 +288,10 @@ export default function StockProductsPage() {
                     const dateObj = new Date(product.updatedAt || Date.now());
                     const formattedDate = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
+                    const productName = product.productId?.name || '-';
+                    const productCategory = product.categoryId?.name || '-';
+                    const productImage = product.productId?.image_url || product.productId?.cover_image;
+
                     return (
                       <tr key={product._id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-6 py-4">
@@ -294,17 +303,19 @@ export default function StockProductsPage() {
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center p-0.5 bg-white">
-                              {product.cover_image || product.image_url ? (
-                                <img src={product.cover_image || product.image_url} alt={product.name} className="w-full h-full object-contain p-2" />
+                              {productImage ? (
+                                <img src={productImage} alt={productName} className="w-full h-full object-contain p-2" />
                               ) : (
-                                <div className="w-full h-full bg-gray-100"></div>
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                  <Package size={16} className="text-gray-400" />
+                                </div>
                               )}
                             </div>
-                            <span className="font-bold text-gray-900">{product.name}</span>
+                            <span className="font-bold text-gray-900">{productName}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-gray-500">{product.category || '-'}</td>
-                        <td className="px-4 py-4 font-bold text-gray-900">BDT {product.unit_price}</td>
+                        <td className="px-4 py-4 text-gray-500">{productCategory}</td>
+                        <td className="px-4 py-4 font-bold text-gray-900">BDT {product.price || 0}</td>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <span className="text-gray-500 w-12">{stockQty} pcs</span>

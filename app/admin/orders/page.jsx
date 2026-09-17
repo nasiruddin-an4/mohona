@@ -1,20 +1,36 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Search, ChevronDown, Eye, Package, CreditCard, Box, Truck, CheckCircle, XCircle, RotateCcw, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Search, ChevronDown, Eye, Package, CreditCard, Box, Truck, CheckCircle, XCircle, RotateCcw, AlertCircle, Building2, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import Swal from 'sweetalert2';
 import StatusDropdown from '../components/StatusDropdown';
 import Link from 'next/link';
+import { useAuth } from '../../context/AuthContext';
 
 export default function OrdersPage() {
+  const { user, isSuperAdmin } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchOrders = async (silent = false) => {
+  const fetchOutlets = async () => {
+    try {
+      const res = await fetch('/api/outlets');
+      const data = await res.json();
+      if (data.success) setOutlets(data.data);
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchOrders = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const res = await fetch('/api/orders', { cache: 'no-store' });
+      const params = new URLSearchParams();
+      if (selectedOutlet) params.set('outlet', selectedOutlet);
+      else if (!isSuperAdmin && user?.outletId) params.set('outlet', user.outletId);
+
+      const res = await fetch(`/api/orders?${params}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
         setOrders(data.data);
@@ -24,7 +40,7 @@ export default function OrdersPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  };
+  }, [selectedOutlet, isSuperAdmin, user?.outletId]);
 
   const updateOrderStatus = async (orderId, field, value) => {
     try {
@@ -57,9 +73,10 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(() => fetchOrders(true), 3000); // 3 seconds real-time polling
+    if (isSuperAdmin) fetchOutlets();
+    const interval = setInterval(() => fetchOrders(true), 10000); // Poll every 10s
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchOrders, isSuperAdmin]);
 
   // Derive counts from actual API data
   const stats = {
@@ -164,13 +181,30 @@ export default function OrdersPage() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex-1 flex flex-col">
         {/* Filters */}
         <div className="p-4 flex flex-col md:flex-row justify-between gap-4 border-b border-gray-50">
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50/80 border border-gray-100 rounded-full text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400"
-            />
+          <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full pl-10 pr-4 py-2 bg-gray-50/80 border border-gray-100 rounded-full text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 transition-all placeholder:text-gray-400"
+              />
+            </div>
+            {isSuperAdmin && (
+              <select
+                value={selectedOutlet}
+                onChange={e => setSelectedOutlet(e.target.value)}
+                className="px-4 py-2 border border-gray-200 rounded-full text-[13px] text-gray-600 font-medium focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20 bg-white"
+              >
+                <option value="">All Outlets</option>
+                {outlets.map(o => <option key={o._id} value={o._id}>{o.name}</option>)}
+              </select>
+            )}
+            {!isSuperAdmin && user?.outletName && (
+              <div className="flex items-center gap-1.5 text-xs font-bold text-teal-600 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-full">
+                <Building2 size={12} /> {user.outletName} <Lock size={11} className="text-teal-400" />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
@@ -210,6 +244,7 @@ export default function OrdersPage() {
                   </th>
                   <th className="px-4 py-4">ID</th>
                   <th className="px-4 py-4">Customer</th>
+                  {isSuperAdmin && <th className="px-4 py-4">Outlet</th>}
                   <th className="px-4 py-4">Items</th>
                   <th className="px-4 py-4">Amount</th>
                   <th className="px-4 py-4 text-center">Payment status</th>
@@ -234,6 +269,17 @@ export default function OrdersPage() {
                           {order.order_number || `#${order._id?.slice(-5).toUpperCase()}`}
                         </td>
                         <td className="px-4 py-4 font-bold text-gray-700">{order.customer_name || order.email || 'Customer'}</td>
+                        {isSuperAdmin && (
+                          <td className="px-4 py-4">
+                            {order.outletId ? (
+                              <div className="flex items-center gap-1 text-xs font-medium text-teal-600">
+                                <Building2 size={12} /> {order.outletId.name || 'Unknown'}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-400">Website</span>
+                            )}
+                          </td>
+                        )}
                         <td className="px-4 py-4 text-gray-500">{itemCount} pcs</td>
                         <td className="px-4 py-4 font-bold text-gray-900">BDT {order.total_amount?.toFixed(2) || '0.00'}</td>
                         <td className="px-4 py-4 text-center">
