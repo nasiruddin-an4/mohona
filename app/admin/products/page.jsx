@@ -4,6 +4,8 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Search, ChevronDown, Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Check, Building2, Lock, Plus, Package, ToggleLeft, ToggleRight, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../context/AuthContext';
+import ImageUploader from '../components/ImageUploader';
+import { uploadToR2 } from '@/lib/r2-client';
 
 // ── Reusable filter dropdown ─────────────────────────────────────────────────
 const FilterDropdown = ({ value, options, onChange, placeholder, disabled = false }) => {
@@ -56,69 +58,15 @@ const StockBadge = ({ status }) => {
   return <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${map[status] || 'bg-gray-50 text-gray-500'}`}>{status}</span>;
 };
 
-// ── Image Upload Box ───────────────────────────────────────────────────────
-const ImageUploadBox = ({ value, onChange }) => {
-  const [uploading, setUploading] = useState(false);
-  
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    setUploading(true);
-    try {
-      const authRes = await fetch('/api/imagekit-auth');
-      const authData = await authRes.json();
-      
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('fileName', file.name);
-      formData.append('publicKey', process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || 'public_Q9AEkwjWCz2lTMsJ7BSjMGhdeZI=');
-      formData.append('signature', authData.signature);
-      formData.append('expire', authData.expire);
-      formData.append('token', authData.token);
-      
-      const uploadRes = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
-        method: 'POST',
-        body: formData
-      });
-      const uploadData = await uploadRes.json();
-      if (uploadData.url) onChange(uploadData.url);
-    } catch (err) {
-      console.error(err);
-      Swal.fire({ icon: 'error', title: 'Upload failed', confirmButtonColor: '#0f8b80' });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer overflow-hidden group">
-      {value ? (
-        <>
-          <img src={value} alt="Product" className="w-full h-full object-contain p-2" />
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="text-white text-sm font-bold">Change Image</span>
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-col items-center">
-          {uploading ? <div className="w-6 h-6 border-2 border-[#0f8b80] border-t-transparent rounded-full animate-spin mb-2" /> : <Package size={28} className="text-gray-400 mb-2" />}
-          <span className="text-sm text-gray-500 font-medium">{uploading ? 'Uploading...' : 'Click to upload image'}</span>
-        </div>
-      )}
-      <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleUpload} disabled={uploading} />
-    </div>
-  );
-};
-
 // ── Unified Add Product Modal ────────────────────────────────────────────────
 function AddOutletProductModal({ outlets, categories, isSuperAdmin, userOutletId, onClose, onSaved }) {
   const [selectedOutletId, setSelectedOutletId] = useState(isSuperAdmin ? '' : userOutletId);
-  const [form, setForm] = useState({ 
+  const [form, setForm] = useState({
     name: '', image_url: '', description: '', brand: '',
-    categoryId: '', price: '', salePrice: '', stock_qty: 0, 
-    available: true, featured: false, status: 'Publish' 
+    categoryId: '', price: '', salePrice: '', stock_qty: 0,
+    available: true, featured: false, status: 'Publish'
   });
+  const [pendingImageFile, setPendingImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -131,15 +79,21 @@ function AddOutletProductModal({ outlets, categories, isSuperAdmin, userOutletId
     }
     setSaving(true);
     try {
+      let imageUrl = form.image_url;
+      if (pendingImageFile) {
+        imageUrl = await uploadToR2(pendingImageFile, 'mohona_shop/products');
+      }
+
       const res = await fetch('/api/outlet-products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          outletId, 
-          ...form, 
-          price: Number(form.price), 
-          salePrice: Number(form.salePrice || 0), 
-          stock_qty: Number(form.stock_qty || 0) 
+        body: JSON.stringify({
+          outletId,
+          ...form,
+          image_url: imageUrl,
+          price: Number(form.price),
+          salePrice: Number(form.salePrice || 0),
+          stock_qty: Number(form.stock_qty || 0)
         }),
       });
       const data = await res.json();
@@ -167,8 +121,8 @@ function AddOutletProductModal({ outlets, categories, isSuperAdmin, userOutletId
           </div>
 
           <div className="p-6 max-h-[65vh] overflow-y-auto space-y-5">
-            <ImageUploadBox value={form.image_url} onChange={url => setForm(p => ({...p, image_url: url}))} />
-            
+            <ImageUploader value={form.image_url} onFileSelect={setPendingImageFile} label="Product Image" maxSizeMB={5} />
+
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">Product Name *</label>
               <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0f8b80]/20" placeholder="e.g. Elegant Sofa" />
@@ -250,6 +204,7 @@ function EditOutletProductModal({ product, categories, onClose, onSaved }) {
     featured: product.featured ?? false,
     status: product.status || 'Publish'
   });
+  const [pendingImageFile, setPendingImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -258,11 +213,17 @@ function EditOutletProductModal({ product, categories, onClose, onSaved }) {
     }
     setSaving(true);
     try {
+      let imageUrl = form.image_url;
+      if (pendingImageFile) {
+        imageUrl = await uploadToR2(pendingImageFile, 'mohona_shop/products');
+      }
+
       const res = await fetch(`/api/outlet-products/${product._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          image_url: imageUrl,
           price: Number(form.price),
           salePrice: Number(form.salePrice || 0),
           stock_qty: Number(form.stock_qty || 0)
@@ -293,7 +254,7 @@ function EditOutletProductModal({ product, categories, onClose, onSaved }) {
           </div>
           
           <div className="p-6 max-h-[65vh] overflow-y-auto space-y-5">
-            <ImageUploadBox value={form.image_url} onChange={url => setForm(p => ({...p, image_url: url}))} />
+            <ImageUploader value={form.image_url} onFileSelect={setPendingImageFile} label="Product Image" maxSizeMB={5} />
             
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">Product Name *</label>

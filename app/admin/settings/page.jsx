@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, Loader2, Store, Phone, Mail, MapPin, Share2, Globe, Camera, PlayCircle, Briefcase, UserCircle } from 'lucide-react';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
 import ImageUploader from '../components/ImageUploader';
-import { uploadToImageKit } from '@/lib/imagekit';
+import { uploadToR2 } from '@/lib/r2-client';
 
 export default function AdminSettingsPage() {
   const { settings, loading: contextLoading, refreshSettings } = useSiteSettings();
@@ -63,7 +63,7 @@ export default function AdminSettingsPage() {
       let payload = formData;
 
       if (pendingAvatarFile) {
-        const avatarUrl = await uploadToImageKit(pendingAvatarFile, '/admin/avatars');
+        const avatarUrl = await uploadToR2(pendingAvatarFile, 'mohona_shop/admin/avatars');
         payload = { ...formData, adminAvatar: avatarUrl };
       }
 

@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const ImageKit = require('imagekit');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const slugify = require('slugify');
 
 // Configuration
@@ -14,10 +14,13 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
-const imagekit = new ImageKit({
-    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
+const r2Client = new S3Client({
+  region: 'auto',
+  endpoint: process.env.R2_ENDPOINT_URL,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  },
 });
 
 // Product Schema definition
@@ -39,18 +42,30 @@ function parseFilename(filename) {
   return { name, price };
 }
 
-async function uploadToImageKit(filePath, fileName) {
+function slugifyFilename(filename) {
+  const dot = filename.lastIndexOf('.');
+  const base = dot > 0 ? filename.slice(0, dot) : filename;
+  const safe = base
+    .normalize('NFKC')
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 100);
+  return safe || 'file';
+}
+
+async function uploadToR2(filePath, fileName) {
   const fileContent = fs.readFileSync(filePath);
-  return new Promise((resolve, reject) => {
-    imagekit.upload({
-      file: fileContent, //required
-      fileName: fileName,   //required
-      folder: '/products'
-    }, function(error, result) {
-      if(error) reject(error);
-      else resolve(result.url);
-    });
-  });
+  const ext = fileName.includes('.') ? fileName.split('.').pop().toLowerCase() : 'bin';
+  const key = `mohona_shop/products/${Date.now()}-${slugifyFilename(fileName)}.${ext}`;
+
+  await r2Client.send(new PutObjectCommand({
+    Bucket: process.env.R2_BUCKET_NAME,
+    Key: key,
+    Body: fileContent,
+    ContentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+  }));
+
+  return `${process.env.R2_PUBLIC_URL}/${key}`;
 }
 
 async function seedProducts() {
@@ -75,7 +90,7 @@ async function seedProducts() {
       console.log(`Processing: ${name} (Price: ${price})`);
       
       try {
-        const imageUrl = await uploadToImageKit(filePath, file);
+        const imageUrl = await uploadToR2(filePath, file);
         
         // Generate a random-looking slug from the filename to avoid collisions with Bengali chars
         const baseSlug = name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'product';

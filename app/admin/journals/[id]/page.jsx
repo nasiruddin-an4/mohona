@@ -6,13 +6,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import ImageUploader from '../../components/ImageUploader';
+import { uploadToR2 } from '@/lib/r2-client';
 
 export default function EditJournalPage({ params }) {
   const router = useRouter();
   const resolvedParams = use(params);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+  const [pendingImageFile, setPendingImageFile] = useState(null);
+
   const [form, setForm] = useState({
     title: '',
     slug: '',
@@ -66,10 +68,16 @@ export default function EditJournalPage({ params }) {
 
     setSaving(true);
     try {
+      let payload = form;
+      if (pendingImageFile) {
+        const imageUrl = await uploadToR2(pendingImageFile, 'mohona_shop/journals');
+        payload = { ...form, image_url: imageUrl };
+      }
+
       const res = await fetch(`/api/journals/${resolvedParams.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       
@@ -192,11 +200,10 @@ export default function EditJournalPage({ params }) {
 
           {/* Image Upload */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <label className="block text-sm font-bold text-gray-900 mb-4">Featured Image</label>
-            <ImageUploader 
+            <ImageUploader
               value={form.image_url}
-              onChange={(url) => setForm(prev => ({ ...prev, image_url: url }))}
-              folder="journals"
+              onFileSelect={setPendingImageFile}
+              label="Featured Image"
             />
           </div>
         </div>
